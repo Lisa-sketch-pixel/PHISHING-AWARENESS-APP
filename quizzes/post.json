@@ -1,0 +1,12 @@
+[
+  {
+    "question": "You see 'verify-account.bank.com.support-login.net' — what’s the red flag?",
+    "options": ["Uses HTTPS", "Subdomain tricking real brand", "Short length", "Has 'login' in URL"],
+    "answer": 1
+  },
+  {
+    "question": "A message says: 'Your account will be closed in 1 hour. Click now.'",
+    "options": ["Routine update", "Urgency + threat", "Scheduled maintenance", "Thank-you note"],
+    "answer": 1
+  }
+]
