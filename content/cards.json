@@ -1,1 +1,29 @@
+[
+  {
+    "title": "What is Phishing?",
+    "body": "Phishing is when scammers pretend to be someone you trust to trick you into sharing information, clicking fake links, or downloading harmful files.",
+    "tips": ["Be suspicious of unexpected messages", "Slow down and verify using official apps or sites"]
+  },
+  {
+    "title": "Urgency & Pressure",
+    "body": "Scammers create panic: 'Your account will be locked in 1 hour'. This is designed to rush you.",
+    "example": "Your account will be closed today. Click here to keep it active.",
+    "tips": ["Pause, breathe, verify on the official site", "Don’t click under pressure"]
+  },
+  {
+    "title": "Passwords & Personal Info",
+    "body": "Legitimate companies will never ask for passwords or PINs by email or SMS.",
+    "tips": ["Never share passwords by message", "Use password managers"]
+  },
+  {
+    "title": "Attachments & Downloads",
+    "body": "Unknown attachments (especially .exe, .scr) can install malware.",
+    "tips": ["Only open files you expect from known contacts", "If unsure, ask through another channel"]
+  },
+  {
+    "title": "What to Do If You Clicked",
+    "body": "Don’t panic. Run a security scan and change passwords for important accounts.",
+    "tips": ["Scan device", "Change passwords", "Enable 2-factor authentication"]
+  }
+]
 
