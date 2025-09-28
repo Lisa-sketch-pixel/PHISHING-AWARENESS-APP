@@ -1,11 +1,1 @@
-[
-  {
-    "title": "Urgency & Threats",
-    "body": "Phishers pressure you to act fast (\"within 1 hour\"), threatening lockouts or fines. Slow down and verify via official channels."
-  },
-  {
-    "title": "Suspicious URLs",
-    "body": "Look for odd domains or subdomain tricks (e.g., support.bank.com.attacker.net). Hover links before clicking.",
-    "example": "http://bank-login.secure-update.com"
-  }
-]
+
