@@ -9,62 +9,85 @@ st.set_page_config(page_title="Phishing Awareness", page_icon="🛡️", layout=
 # -----------------------
 def init_state():
     defaults = {
-        "learn_viewed": False,
+        "learn_viewed": False,   # flipped after confirming basic learning
         "quiz_submitted": False,
         "quiz_score": 0,
         "quiz_total": 0,
-        "stars": 0,                 # gamification currency
-        "badge": None,              # Bronze / Silver / Gold
-        "nav": "Home"               # internal router for CTA buttons
+        "stars": 0,              # gamification currency
+        "badge": None,           # Bronze / Silver / Gold
+        "nav": "Home"            # for internal nav buttons
     }
-    for k,v in defaults.items():
+    for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
+
 init_state()
 
 # -----------------------
-# Styling (simple)
+# Styling (NEW Home CSS)
 # -----------------------
 HERO_CSS = """
 <style>
-.hero {
-  background: radial-gradient(110% 140% at 10% 10%, #ffffff 0%, #f6f7ff 35%, #eef1ff 60%, #e7ecff 100%);
-  padding: 28px 22px;
-  border-radius: 20px;
-  border: 1px solid #eef;
-  box-shadow: 0 8px 24px rgba(40,60,120,0.07);
+:root{
+  --brand:#4f46e5;           /* indigo-600 */
+  --brand-soft:#eef2ff;      /* indigo-50 */
+  --ink:#0f172a;             /* slate-900 */
+  --muted:#6b7280;
 }
-.kpis { display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; }
+.hero {
+  position: relative;
+  background: radial-gradient(120% 160% at 10% 10%, #ffffff 0%, #f6f7ff 35%, #eef1ff 60%, #e7ecff 100%);
+  padding: 36px 28px;
+  border-radius: 22px;
+  border: 1px solid #eef;
+  box-shadow: 0 10px 26px rgba(40,60,120,0.08);
+  overflow: hidden;
+}
+.hero:after{
+  content:"";
+  position:absolute; right:-80px; top:-80px;
+  width:220px; height:220px; border-radius:50%;
+  background: conic-gradient(from 180deg at 50% 50%, #c7d2fe, #e0e7ff, #c7d2fe);
+  filter: blur(18px); opacity:.6;
+}
+.hero h1{ margin:0 0 6px 0; font-size: 1.65rem; color: var(--ink);}
+.hero p{ margin:2px 0 0 0; color: var(--muted); }
+.kpis { display:flex; gap:14px; flex-wrap:wrap; margin-top:14px; }
 .kpi {
-  flex:1 1 160px; background:#fff; border:1px solid #f0f2ff; border-radius:14px;
+  flex:1 1 180px; background:#fff; border:1px solid #f0f2ff; border-radius:14px;
   padding:12px 14px; text-align:center;
 }
-.star-big { font-size: 26px; }
-.cta button { margin-right:8px; }
-.small-muted { color:#6b7280; font-size:13px; }
-.badge-pill {
-  display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:600;
-  border:1px solid #e5e7eb; background:#fff;
+.kpi .value{ font-size:20px; font-weight:700; color: var(--ink); }
+.kpi .label{ font-size:12px; color: var(--muted); }
+.pills { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.pill { background:var(--brand-soft); color:var(--brand); border:1px solid #e0e7ff; padding:6px 10px; border-radius:999px; font-weight:600; font-size:12px; }
+.cta-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+.cta-btn {
+  border:1px solid #dbe2ff; background:#fff; padding:10px 14px; border-radius:12px; font-weight:600;
 }
+.cta-primary {
+  background:var(--brand); color:#fff; border:1px solid var(--brand);
+}
+.feature-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap:12px; margin-top:14px;}
+.feature{
+  background:#fff; border:1px solid #f0f2ff; border-radius:14px; padding:12px 14px;
+}
+.feature h4{ margin:0 0 6px 0; font-size: 14px;}
+.feature p{ margin:0; font-size: 13px; color: var(--muted); }
+.divider { height:1px; background:#eef2ff; margin: 12px 0; }
+.small-muted { color:#6b7280; font-size:13px; }
 </style>
 """
 st.markdown(HERO_CSS, unsafe_allow_html=True)
 
 # -----------------------
-# Data loaders
+# Helpers & Data loaders
 # -----------------------
-def load_cards():
-    p = Path("content/cards.json")
-    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
+def go(page: str):
+    st.session_state["nav"] = page
+    st.rerun()
 
-def load_quiz():
-    p = Path("quizzes/main.json")
-    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
-
-# -----------------------
-# Utils
-# -----------------------
-def award_stars(n):
+def award_stars(n: int):
     st.session_state["stars"] = max(0, st.session_state["stars"] + int(n))
 
 def update_badge():
@@ -78,55 +101,20 @@ def update_badge():
     else:
         st.session_state["badge"] = None
 
-def go(page):
-    st.session_state["nav"] = page
-    st.rerun()
+def load_json(path: str):
+    p = Path(path)
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
 
-# -----------------------
-# Sections
-# -----------------------
-def home_section():
-    st.markdown("""
-<div class='hero'>
-  <h2>🛡️ Phishing Awareness — Learn, Play, Improve</h2>
-  <p class='small-muted'>Quick lessons first, then a short quiz. Earn <b>stars</b>, unlock <span class='badge-pill'>Bronze</span>, <span class='badge-pill'>Silver</span>, or <span class='badge-pill'>Gold</span> badges. Perfect for beginners — no jargon.</p>
-  <div class='kpis'>
-    <div class='kpi'><div class='star-big'>⭐</div><div><b>{stars}</b> Stars</div></div>
-    <div class='kpi'>Badge<br><b>{badge}</b></div>
-    <div class='kpi'>Quiz Score<br><b>{score}</b></div>
-  </div>
-</div>
-""".format(
-        stars=st.session_state["stars"],
-        badge=(st.session_state["badge"] or "—"),
-        score=(f"{st.session_state['quiz_score']}/{st.session_state['quiz_total']}" if st.session_state["quiz_submitted"] else "—")
-    ), unsafe_allow_html=True)
+def load_quiz():
+    return load_json("quizzes/main.json")
 
-    c1, c2, c3 = st.columns([1,1,1])
-    with c1:
-        if st.button("📚 Start Learning"):
-            go("Learn")
-    with c2:
-        if st.button("📝 Go to Quiz"):
-            go("Quiz")
-    with c3:
-        if st.button("📈 View Results"):
-            go("Results")
-
-    st.write("")
-    st.write("**How it works**")
-    st.markdown("""
-- Open a few short **Learn** cards. Each card has a tiny **Quick Check** — get it right to earn a ⭐.
-- Take the **Quiz** (beginner-friendly). Each correct answer adds more ⭐.
-- See your **Results**, total ⭐, and your **badge**.
-""")
-
-def learn_section():
-    st.title("📚 Learn the Basics (Start Here)")
-    st.caption("Open the cards. Each card has a tiny Quick Check — answer correctly to earn a ⭐.")
-    cards = load_cards()
+def show_learning_cards(cards: list, prefix: str):
+    """
+    Render learning cards with optional Quick Check.
+    prefix ensures unique Streamlit widget keys per tab (basic/advanced).
+    """
     if not cards:
-        st.warning("No learning cards found yet (content/cards.json).")
+        st.warning("No learning cards found.")
         return
 
     earned_now = 0
@@ -140,13 +128,12 @@ def learn_section():
                 for tip in c["tips"]:
                     st.write("•", tip)
 
-            # Quick check (mini question per card)
             qc = c.get("check")
             if qc:
                 st.write("---")
                 st.write("**Quick Check**")
-                choice = st.radio(qc["question"], qc["options"], index=None, key=f"lc_{i}")
-                if st.button("Check", key=f"lc_btn_{i}"):
+                choice = st.radio(qc["question"], qc["options"], index=None, key=f"{prefix}_q_{i}")
+                if st.button("Check", key=f"{prefix}_btn_{i}"):
                     correct = qc["options"][qc["answer"]]
                     if choice == correct:
                         st.success("✅ Correct! +1 ⭐")
@@ -161,28 +148,129 @@ def learn_section():
         update_badge()
         st.balloons()
 
-    # unlock quiz after viewing learn (or answering at least one)
-    st.write("")
-    if st.button("I’ve reviewed the basics"):
-        st.session_state["learn_viewed"] = True
-        st.success("Great! The quiz is unlocked.")
-        st.balloons()
+# -----------------------
+# Sections (Home UPDATED)
+# -----------------------
+def home_section():
+    stars = st.session_state["stars"]
+    badge = st.session_state["badge"] or "—"
+    score = f"{st.session_state['quiz_score']}/{st.session_state['quiz_total']}" if st.session_state["quiz_submitted"] else "—"
+
+    st.markdown(f"""
+<div class='hero'>
+  <h1>🛡️ Learn to Spot Phishing — Fast</h1>
+  <p>Start with quick lessons (Basic or Advanced), then take a short quiz. Earn <b>stars</b>, unlock badges, and build real-world instincts — no jargon.</p>
+
+  <div class='kpis'>
+    <div class='kpi'><div class='value'>⭐ {stars}</div><div class='label'>Stars earned</div></div>
+    <div class='kpi'><div class='value'>{badge}</div><div class='label'>Current badge</div></div>
+    <div class='kpi'><div class='value'>{score}</div><div class='label'>Latest quiz score</div></div>
+  </div>
+
+  <div class='pills'>
+    <div class='pill'>Beginner-friendly</div>
+    <div class='pill'>Instant feedback</div>
+    <div class='pill'>Earnable rewards</div>
+    <div class='pill'>Short & practical</div>
+  </div>
+
+  <div class='cta-row'>
+    <button class='cta-btn cta-primary' onclick="window.parent.postMessage({{type:'streamlit:rerunScript'}}, '*')">Let's start</button>
+    <button class='cta-btn' onclick="window.parent.postMessage({{type:'streamlit:setComponentValue', key:'nav', value:'Learn'}}, '*')">Browse lessons</button>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # Real nav via Streamlit
+    c1, c2, c3 = st.columns([1,1,1])
+    with c1:
+        if st.button("📚 Start Learning"):
+            go("Learn")
+    with c2:
+        if st.button("📝 Take the Quiz"):
+            go("Quiz")
+    with c3:
+        if st.button("📈 See Results"):
+            go("Results")
+
+    st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+
+    st.subheader("Why this works")
+    st.markdown(
+        "- **Micro-lessons** teach common scam tactics in minutes.\n"
+        "- **Quick Checks** and the quiz give **instant feedback**.\n"
+        "- **Rewards** (⭐ & badges) keep it fun — and yes, we celebrate with balloons 🎈.\n"
+        "- Designed for **everyone** — no technical background needed."
+    )
+
+    st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+
+    st.subheader("What’s inside")
+    st.markdown("""
+<div class='feature-grid'>
+  <div class='feature'>
+    <h4>📚 Basic Lessons</h4>
+    <p>Plain-language tips: urgency tricks, passwords, attachments, what to do if you clicked.</p>
+  </div>
+  <div class='feature'>
+    <h4>🧠 Advanced Lessons</h4>
+    <p>Look-alike domains, header clues, QR (quishing), and spear-phishing.</p>
+  </div>
+  <div class='feature'>
+    <h4>📝 Short Quiz</h4>
+    <p>Beginner-friendly questions with explanations. Earn ⭐ for correct answers.</p>
+  </div>
+  <div class='feature'>
+    <h4>🏅 Badges</h4>
+    <p>Bronze, Silver, Gold. Level up as you learn.</p>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    st.caption("Tip: You can jump into **Basic** or **Advanced** from the Learn page anytime.")
+    if stars == 0:
+        st.toast("Start with Basic lessons — easy stars are waiting ⭐")
+
+def learn_section():
+    st.title("📚 Learn About Phishing")
+    st.caption("Choose your level. Basic is beginner-friendly; Advanced is optional deeper content.")
+
+    tab1, tab2 = st.tabs(["🟢 Basic", "🔵 Advanced"])
+
+    with tab1:
+        st.subheader("Basic Awareness")
+        st.caption("Simple cards with quick checks. Great for first-timers.")
+        basic_cards = load_json("content/cards_basic.json")
+        show_learning_cards(basic_cards, prefix="basic")
+
+        if st.button("✅ I've reviewed the basics"):
+            st.session_state["learn_viewed"] = True
+            st.success("Great! The quiz is unlocked.")
+            st.balloons()
+
+    with tab2:
+        st.subheader("Advanced Awareness (Optional)")
+        st.caption("Deeper topics like homoglyph domains, headers, QR phishing, spear-phishing.")
+        adv_cards = load_json("content/cards_advanced.json")
+        show_learning_cards(adv_cards, prefix="adv")
 
 def quiz_section():
     if not st.session_state["learn_viewed"]:
         st.title("🔒 Quiz Locked")
-        st.info("Visit **Learn** first and click **“I’ve reviewed the basics”** to unlock the quiz.")
+        st.info("Please visit **Learn** and click **“I've reviewed the basics”** to unlock the quiz.")
         if st.button("Go to Learn"):
             go("Learn")
         return
 
     st.title("📝 Main Quiz")
-    st.caption("Answer then submit to see explanations. Correct answers earn ⭐.")
+    st.caption("Answer all questions, then submit for explanations. Correct answers earn ⭐.")
+
     quiz = load_quiz()
     if not quiz:
         st.warning("No quiz found (quizzes/main.json).")
         return
 
+    # Render questions
     for q in quiz:
         st.subheader(q["question"])
         st.radio("Choose one:", q["options"], index=None, key=f"ans_{q['id']}")
@@ -196,7 +284,7 @@ def quiz_section():
             correct = q["options"][q["answer"]]
             ok = (choice == correct)
             score += int(ok)
-            stars_now += int(ok)  # 1 star per correct
+            stars_now += int(ok)
             with st.expander(f"Review: {q['question']}"):
                 st.write("Your answer:", f"**{choice}**" if choice else "_No answer_")
                 st.write("Correct:", f"**{correct}**")
@@ -210,9 +298,10 @@ def quiz_section():
         if stars_now > 0:
             award_stars(stars_now)
             update_badge()
+
         st.success(f"Score: {score}/{len(quiz)}  |  ⭐ earned: {stars_now}")
 
-        # celebrate!
+        # Celebrate!
         if score == len(quiz):
             st.balloons()
         elif score >= max(3, len(quiz)//2):
@@ -222,6 +311,7 @@ def quiz_section():
 
 def results_section():
     st.title("📈 Your Results & Rewards")
+
     colA, colB, colC = st.columns(3)
     with colA:
         st.metric("Stars", st.session_state["stars"])
@@ -256,11 +346,12 @@ def results_section():
             go("Quiz")
 
 # -----------------------
-# Router (sidebar or internal)
+# Router (sidebar)
 # -----------------------
-# You can keep your old sidebar radio if you like.
-# Here we'll mirror the internal nav for a clean experience.
-page = st.sidebar.radio("🧭 Navigation", ["Home", "Learn", "Quiz", "Results"], index=["Home","Learn","Quiz","Results"].index(st.session_state["nav"]))
+page = st.sidebar.radio(
+    "🧭 Go to", ["Home", "Learn", "Quiz", "Results"],
+    index=["Home","Learn","Quiz","Results"].index(st.session_state["nav"])
+)
 
 if page != st.session_state["nav"]:
     st.session_state["nav"] = page
