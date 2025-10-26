@@ -270,15 +270,21 @@ def learn_section():
 # Quiz
 # -----------------------
 def quiz_section():
-     require_auth()
+    require_auth()
+    
     if not st.session_state["learn_viewed"]:
         st.title("🔒 Quiz Locked")
         st.info("Visit **Learn** and click **“I've reviewed the basics”** to unlock the quiz.")
-        if st.button("Go to Learn"): go("Learn"); return
+        if st.button("Go to Learn"):
+            go("Learn");
+            return
     st.title("📝 Main Quiz")
     st.caption("Answer all questions, then submit for explanations. Correct answers earn ⭐.")
     quiz = load_quiz()
-    if not quiz: st.warning("No quiz found (quizzes/main.json)."); return
+    if not quiz:
+        st.warning("No quiz found (quizzes/main.json).");
+        return
+        
     for q in quiz:
         st.subheader(q["question"])
         st.radio("Choose one:", q["options"], index=None, key=f"ans_{q['id']}"); st.write("")
