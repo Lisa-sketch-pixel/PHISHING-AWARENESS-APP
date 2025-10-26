@@ -1,7 +1,17 @@
 import streamlit as st
+from supabase import create_client
+import streamlit as st
 import json, csv, io, re, random
 from pathlib import Path
 from typing import List, Dict, Any
+# --- Supabase connection test ---
+try:
+    url = st.secrets["supabase"]["url"]
+    key = st.secrets["supabase"]["anon_key"]
+    supabase = create_client(url, key)
+    st.success(f"✅ Connected to Supabase project: {url}")
+except Exception as e:
+    st.error(f"❌ Could not connect to Supabase: {e}")
 
 st.set_page_config(page_title="Cybersecurity Awareness System & Threat Simulator", page_icon="🛡️", layout="centered")
 
