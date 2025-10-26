@@ -76,6 +76,18 @@ def save_simulation_result(correct, total, difficulty, stars):
     except Exception as e:
         st.error(f"Error saving simulation results: {e}")
 
+def create_profile(user_id, full_name):
+    """Create user profile record in Supabase."""
+    try:
+        supabase.table("profiles").insert({
+            "id": user_id,
+            "full_name": full_name,
+            "created_at": datetime.utcnow().isoformat()
+        }).execute()
+        st.info("Profile added to database ✅")
+    except Exception as e:
+        st.error(f"Error creating profile: {e}")
+
 # ==========================
 # Auth Pages
 # ==========================
@@ -102,10 +114,16 @@ def login_page():
         email = st.text_input("New Email", key="signup_email")
         password = st.text_input("Create Password", type="password", key="signup_password")
         full_name = st.text_input("Full Name (optional)", key="signup_name")
+
         if st.button("Create Account"):
             try:
-                supabase.auth.sign_up({"email": email, "password": password})
+                # Step 1: Create account in Supabase Auth
+                res = supabase.auth.sign_up({"email": email, "password": password})
                 st.success("🎉 Account created! Please verify your email before logging in.")
+
+                # Step 2: Create a profile record linked to the user ID
+                if res.user:
+                    create_profile(res.user.id, full_name)
             except Exception as e:
                 st.error(f"Sign-up failed: {e}")
 
@@ -172,7 +190,7 @@ def quiz_section():
 
     if st.button("Submit Quiz"):
         st.success(f"🎉 You got {score}/{len(quiz)} correct!")
-        stars = score  # 1 star per correct answer
+        stars = score
         save_quiz_result(score, len(quiz), stars)
 
 def simulate_section():
