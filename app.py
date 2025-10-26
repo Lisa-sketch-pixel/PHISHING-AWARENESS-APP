@@ -2,6 +2,7 @@ import streamlit as st
 from supabase import create_client
 import json
 from datetime import datetime
+from openai import OpenAI
 
 # ==========================
 # Supabase Client Setup
@@ -9,6 +10,27 @@ from datetime import datetime
 url = st.secrets["supabase"]["url"]
 key = st.secrets["supabase"]["anon_key"]
 supabase = create_client(url, key)
+
+# ==========================
+# AI Feedback Setup
+# ==========================
+def get_ai_feedback(prompt):
+    """Generate AI-based feedback or explanations."""
+    try:
+        client = OpenAI(api_key=st.secrets["openai"]["api_key"])
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a friendly cybersecurity mentor helping users understand phishing."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=200,
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        st.error(f"AI error: {e}")
+        return None
 
 # ==========================
 # Helper Functions
@@ -117,11 +139,9 @@ def login_page():
 
         if st.button("Create Account"):
             try:
-                # Step 1: Create account in Supabase Auth
                 res = supabase.auth.sign_up({"email": email, "password": password})
                 st.success("🎉 Account created! Please verify your email before logging in.")
 
-                # Step 2: Create a profile record linked to the user ID
                 if res.user:
                     create_profile(res.user.id, full_name)
             except Exception as e:
@@ -132,12 +152,10 @@ def login_page():
 # ==========================
 def home_section():
     st.title("🏠 Cybersecurity Awareness System & Threat Simulator")
-    st.write(
-        """
+    st.write("""
         Welcome to the Cybersecurity Awareness System & Threat Simulator!  
         Learn how to identify phishing threats, take quizzes, and test your instincts with real-life simulations.  
-        """
-    )
+    """)
     st.info("Use the sidebar to explore sections like **Learn**, **Simulate**, and **Quiz**.")
 
 def learn_section():
@@ -193,6 +211,13 @@ def quiz_section():
         stars = score
         save_quiz_result(score, len(quiz), stars)
 
+        ai_feedback = get_ai_feedback(
+            f"The user scored {score} out of {len(quiz)} in a phishing awareness quiz. "
+            "Give personalized cybersecurity learning feedback and short advice on improving phishing detection."
+        )
+        if ai_feedback:
+            st.info(ai_feedback)
+
 def simulate_section():
     require_auth()
     st.title("📬 Phishing Simulation")
@@ -226,6 +251,13 @@ def simulate_section():
         st.success(f"✅ Simulation complete! You identified {correct}/{total} emails correctly.")
         stars = correct
         save_simulation_result(correct, total, "Normal", stars)
+
+        ai_feedback = get_ai_feedback(
+            f"The user correctly identified {correct} out of {total} phishing simulation emails. "
+            "Provide a short analysis of their phishing detection performance and a tip to improve."
+        )
+        if ai_feedback:
+            st.info(ai_feedback)
 
 def results_section():
     require_auth()
