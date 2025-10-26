@@ -1,8 +1,8 @@
 import streamlit as st
-from supabase import create_client
 import json
 from datetime import datetime
-from openai import OpenAI
+from supabase import create_client
+import openai
 
 # ==========================
 # Supabase Client Setup
@@ -17,8 +17,8 @@ supabase = create_client(url, key)
 def get_ai_feedback(prompt):
     """Generate AI-based feedback or explanations."""
     try:
-        client = OpenAI(api_key=st.secrets["openai"]["api_key"])
-        response = client.chat.completions.create(
+        openai.api_key = st.secrets["openai"]["api_key"]
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a friendly cybersecurity mentor helping users understand phishing."},
@@ -27,7 +27,7 @@ def get_ai_feedback(prompt):
             max_tokens=200,
             temperature=0.7
         )
-        return response.choices[0].message.content
+        return response["choices"][0]["message"]["content"]
     except Exception as e:
         st.error(f"AI error: {e}")
         return None
@@ -141,7 +141,6 @@ def login_page():
             try:
                 res = supabase.auth.sign_up({"email": email, "password": password})
                 st.success("🎉 Account created! Please verify your email before logging in.")
-
                 if res.user:
                     create_profile(res.user.id, full_name)
             except Exception as e:
@@ -242,9 +241,7 @@ def simulate_section():
                 ["Phishing", "Safe"],
                 key=f"sim_{email.get('id', '')}"
             )
-            if choice == "Phishing" and is_phish:
-                correct += 1
-            elif choice == "Safe" and not is_phish:
+            if (choice == "Phishing" and is_phish) or (choice == "Safe" and not is_phish):
                 correct += 1
 
     if st.button("Submit Responses"):
@@ -311,3 +308,4 @@ else:
 
 # --- Render Selected Page ---
 pages[page]()
+
