@@ -13,23 +13,27 @@ supabase = create_client(url, key)
 # Helper Functions
 # ==========================
 def load_json(file_path):
+    """Load JSON file safely and handle missing files."""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        st.error(f"File not found: {file_path}")
+        st.warning(f"⚠️ Missing file: {file_path}")
+        return []
+    except json.JSONDecodeError:
+        st.error(f"❌ Invalid JSON format in {file_path}")
         return []
 
+def go(page):
+    """Simple navigation control."""
+    st.session_state["page"] = page
+
 def require_auth():
-    """Ensure user is logged in before accessing private pages"""
-    if "user" not in st.session_state:
-        st.warning("🔐 Please log in to continue.")
+    """Ensure user is logged in before accessing private pages."""
+    if "user" not in st.session_state or not st.session_state["user"]:
+        st.warning("🔐 Please log in to access this section.")
         login_page()
         st.stop()
-
-def go(page):
-    """Simple navigation control"""
-    st.session_state["page"] = page
 
 # ==========================
 # Auth Pages
@@ -38,32 +42,34 @@ def login_page():
     st.title("🔐 Login / Sign Up")
     tab1, tab2 = st.tabs(["Login", "Sign Up"])
 
+    # --- LOGIN TAB ---
     with tab1:
         email = st.text_input("Email", key="login_email")
-        password = st.text_input("Password", type="password", key="login_pass")
+        password = st.text_input("Password", type="password", key="login_password")
         if st.button("Login"):
             try:
-                user = supabase.auth.sign_in_with_password({"email": email, "password": password})
-                st.session_state["user"] = user.user
-                st.success("✅ Logged in successfully!")
+                res = supabase.auth.sign_in_with_password({"email": email, "password": password})
+                st.session_state["user"] = res.user
+                st.success(f"✅ Welcome back, {res.user.email}!")
                 go("Home")
+                st.rerun()
             except Exception as e:
                 st.error(f"Login failed: {e}")
 
+    # --- SIGNUP TAB ---
     with tab2:
-        email = st.text_input("Email", key="signup_email")
-        password = st.text_input("Password", type="password", key="signup_pass")
+        email = st.text_input("New Email", key="signup_email")
+        password = st.text_input("Create Password", type="password", key="signup_password")
         if st.button("Create Account"):
             try:
                 supabase.auth.sign_up({"email": email, "password": password})
-                st.success("🎉 Account created! Please check your email to verify.")
+                st.success("🎉 Account created! Please check your email to verify before logging in.")
             except Exception as e:
                 st.error(f"Sign-up failed: {e}")
 
 # ==========================
-# Pages
+# Content Pages
 # ==========================
-
 def home_section():
     st.title("🏠 Cybersecurity Awareness System & Threat Simulator")
     st.write(
@@ -72,49 +78,55 @@ def home_section():
         Learn how to identify phishing threats, take quizzes, and test your instincts with real-life simulations.  
         """
     )
+    st.info("Use the sidebar to explore sections like **Learn**, **Simulate**, and **Quiz**.")
 
 def learn_section():
     st.title("📚 Learn About Phishing")
-
     st.info("Here you’ll learn the basics of phishing, red flags, and protection techniques.")
+
     basic_cards = load_json("content/cards_basic.json")
 
-   for card in basic_cards:
-    title = card.get("title", "Untitled Section")
-    content = card.get("content", "No details available for this topic yet.")
-    with st.expander(title):
-        st.write(content)
+    if not basic_cards:
+        st.warning("⚠️ No learning cards found. Please add content to content/cards_basic.json.")
+        return
+
+    for card in basic_cards:
+        title = card.get("title", "Untitled Section")
+        content = card.get("content", "No details available for this topic yet.")
+        with st.expander(title):
+            st.write(content)
 
     st.success("✅ You’ve completed the learning section!")
-
-    if "learn_viewed" not in st.session_state:
-        st.session_state["learn_viewed"] = True
+    st.session_state["learn_viewed"] = True
 
 def quiz_section():
     require_auth()
 
     if not st.session_state.get("learn_viewed", False):
         st.title("🔒 Quiz Locked")
-        st.info("Visit **Learn** and click ***'I've reviewed the basics'*** to unlock the quiz.")
+        st.info("Please complete the learning section before attempting the quiz.")
         if st.button("Go to Learn"):
             go("Learn")
+            st.rerun()
         st.stop()
 
-    st.title("🧠 Main Quiz")
-    st.caption("Answer all questions, then submit for explanations. Correct answers earn ⭐.")
+    st.title("🧠 Phishing Awareness Quiz")
+    st.caption("Answer all questions carefully and earn stars for correct answers.")
 
     quiz = load_json("quizzes/main.json")
     if not quiz:
-        st.warning("⚠️ No quiz data found (quizzes/main.json).")
+        st.warning("⚠️ No quiz data found. Please add content to quizzes/main.json.")
         return
 
     score = 0
     for q in quiz:
-        st.subheader(q["question"])
-        ans = st.radio("Choose one:", q["options"], index=None, key=f"ans_{q['id']}")
+        question = q.get("question", "Untitled Question")
+        options = q.get("options", [])
+        answer = q.get("answer", "")
+        st.subheader(question)
+        choice = st.radio("Choose one:", options, index=None, key=f"quiz_{q.get('id', '')}")
         st.write("")
-
-        if ans == q["answer"]:
+        if choice == answer:
             score += 1
 
     if st.button("Submit Quiz"):
@@ -122,42 +134,40 @@ def quiz_section():
 
 def simulate_section():
     require_auth()
-
     st.title("📬 Phishing Simulation")
-    st.write(
-        """
-        In this simulation, you’ll see a mock inbox.  
-        Identify which emails look suspicious or safe to practice detecting phishing attempts.
-        """
-    )
+    st.write("Identify which emails look suspicious to test your instincts.")
 
     simulation_data = load_json("content/simulation.json")
 
+    if not simulation_data:
+        st.warning("⚠️ No simulation emails found. Please add content to content/simulation.json.")
+        return
+
     for email in simulation_data:
-        with st.expander(f"📧 {email['subject']}"):
-            st.write(email["body"])
+        subject = email.get("subject", "No Subject")
+        body = email.get("body", "No email content provided.")
+        with st.expander(f"📧 {subject}"):
+            st.write(body)
             choice = st.radio(
-                "Is this a phishing email?",
+                "Is this email a phishing attempt?",
                 ["Phishing", "Safe"],
-                key=f"sim_{email['id']}"
+                key=f"sim_{email.get('id', '')}"
             )
             st.write("")
 
     if st.button("Submit Responses"):
-        st.success("✅ Simulation complete! You’ll see detailed results soon.")
+        st.success("✅ Simulation complete! Great job practicing your detection skills.")
 
 def results_section():
     require_auth()
-
     st.title("📈 Your Progress & Results")
-    st.write("Track your progress, scores, and learning milestones here!")
-
-    st.metric(label="Total Quizzes Completed", value="1")
-    st.metric(label="Average Score", value="80%")
-    st.metric(label="Simulations Attempted", value="2")
+    st.write("Track your achievements, quiz scores, and completed simulations here.")
+    st.metric("Total Quizzes Completed", "1")
+    st.metric("Average Score", "80%")
+    st.metric("Simulations Attempted", "2")
 
 # ==========================
-# Page Navigation
+# Sidebar & Navigation
 # ==========================
 pages = {
     "Home": home_section,
@@ -174,4 +184,17 @@ st.sidebar.title("🌐 Go to")
 page = st.sidebar.radio("", list(pages.keys()), index=list(pages.keys()).index(st.session_state["page"]))
 st.session_state["page"] = page
 
+# --- User Info and Logout ---
+if "user" in st.session_state and st.session_state["user"]:
+    user_email = st.session_state["user"].email
+    st.sidebar.caption(f"👤 Logged in as: {user_email}")
+    if st.sidebar.button("🚪 Log Out"):
+        supabase.auth.sign_out()
+        st.session_state["user"] = None
+        st.success("You’ve been logged out.")
+        st.rerun()
+else:
+    st.sidebar.caption("Not signed in")
+
+# --- Render the selected page ---
 pages[page]()
