@@ -79,9 +79,11 @@ def learn_section():
     st.info("Here you’ll learn the basics of phishing, red flags, and protection techniques.")
     basic_cards = load_json("content/cards_basic.json")
 
-    for card in basic_cards:
-        with st.expander(card["title"]):
-            st.write(card["content"])
+   for card in basic_cards:
+    title = card.get("title", "Untitled Section")
+    content = card.get("content", "No details available for this topic yet.")
+    with st.expander(title):
+        st.write(content)
 
     st.success("✅ You’ve completed the learning section!")
 
