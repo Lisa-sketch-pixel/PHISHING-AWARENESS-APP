@@ -4,6 +4,82 @@ import streamlit as st
 import json, csv, io, re, random
 from pathlib import Path
 from typing import List, Dict, Any
+import streamlit as st
+from supabase import create_client, Client
+
+# --- Initialize Supabase client ---
+@st.cache_resource
+def get_supabase() -> Client:
+    url = st.secrets["supabase"]["url"]
+    key = st.secrets["supabase"]["anon_key"]
+    return create_client(url, key)
+
+# --- Maintain auth state ---
+def ensure_auth_state():
+    if "sb_session" not in st.session_state:
+        st.session_state["sb_session"] = None
+    if "user" not in st.session_state:
+        st.session_state["user"] = None
+# --- Signup Form ---
+def signup_form():
+    st.subheader("🆕 Create an Account")
+    email = st.text_input("Email", key="signup_email")
+    password = st.text_input("Password", type="password", key="signup_password")
+    full_name = st.text_input("Full Name", key="signup_name")
+
+    if st.button("Sign Up"):
+        sb = get_supabase()
+        try:
+            res = sb.auth.sign_up({
+                "email": email,
+                "password": password,
+                "options": {"data": {"full_name": full_name}}
+            })
+            st.success("✅ Account created successfully! Please check your email to verify before logging in.")
+        except Exception as e:
+            st.error(f"Signup failed: {e}")
+
+
+# --- Login Form ---
+def login_form():
+    st.subheader("🔐 Login to Your Account")
+    email = st.text_input("Email", key="login_email")
+    password = st.text_input("Password", type="password", key="login_password")
+
+    if st.button("Login"):
+        sb = get_supabase()
+        try:
+            res = sb.auth.sign_in_with_password({
+                "email": email,
+                "password": password
+            })
+            st.session_state["sb_session"] = res.session
+            st.session_state["user"] = res.user
+            st.success(f"✅ Logged in as {res.user.email}")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Login failed: {e}")
+
+
+# --- Logout Button ---
+def logout_button():
+    if st.session_state.get("user") and st.button("🚪 Log Out"):
+        sb = get_supabase()
+        sb.auth.sign_out()
+        st.session_state["user"] = None
+        st.session_state["sb_session"] = None
+        st.success("You’ve been logged out.")
+        st.rerun()
+def require_auth():
+    ensure_auth_state()
+    if not st.session_state["user"]:
+        tab1, tab2 = st.tabs(["🔐 Login", "🆕 Sign Up"])
+        with tab1:
+            login_form()
+        with tab2:
+            signup_form()
+        st.stop()  # stop loading rest of the page if not logged in
+
 # --- Supabase connection test ---
 try:
     url = st.secrets["supabase"]["url"]
@@ -194,6 +270,7 @@ def learn_section():
 # Quiz
 # -----------------------
 def quiz_section():
+     require_auth()
     if not st.session_state["learn_viewed"]:
         st.title("🔒 Quiz Locked")
         st.info("Visit **Learn** and click **“I've reviewed the basics”** to unlock the quiz.")
@@ -305,6 +382,7 @@ def extract_hints(item: Dict[str, Any]) -> List[str]:
     return hints
 
 def simulate_section():
+     require_auth()
     st.title("📬 Simulation — Inbox Training")
     st.caption("Label each message as **Phishing** or **Safe**. Use **Hints** if you’re unsure (no AI yet).")
 
@@ -403,6 +481,7 @@ def simulate_section():
 # Results
 # -----------------------
 def results_section():
+     require_auth()
     st.title("📈 Your Results & Rewards")
     colA, colB, colC = st.columns(3)
     with colA: st.metric("Stars", st.session_state["stars"])
