@@ -1,58 +1,22 @@
 [
   {
     "title": "What is Phishing?",
-    "body": "Phishing is when scammers pretend to be someone you trust to trick you into sharing information, clicking fake links, or downloading harmful files.",
-    "tips": ["Be suspicious of unexpected messages", "Verify using official apps or sites"],
-    "check": {
-      "question": "Phishing usually tries to make you…",
-      "options": ["Share personal info or click harmful links", "Win genuine prizes from real companies"],
-      "answer": 0,
-      "explanation": "Phishing aims to steal info or push you to unsafe actions."
-    }
+    "content": "Phishing is a type of cyberattack where attackers trick users into revealing sensitive information like passwords or credit card details by pretending to be legitimate organizations."
   },
   {
     "title": "Urgency & Pressure",
-    "body": "Scammers create panic like ‘Your account will be locked in 1 hour’ so you react fast.",
-    "example": "Your account will be closed today. Click here to keep it active.",
-    "tips": ["Pause, breathe, and verify on the official site", "Don’t click under pressure"],
-    "check": {
-      "question": "“Your account will be closed in 30 minutes” is mainly…",
-      "options": ["Helpful info", "An urgency tactic to rush you"],
-      "answer": 1,
-      "explanation": "It’s a pressure trick to make you act without thinking."
-    }
+    "content": "Attackers create a sense of urgency, such as warning about account suspension, to rush victims into making mistakes."
   },
   {
     "title": "Passwords & Personal Info",
-    "body": "Legitimate companies will never ask for passwords or PINs by email or SMS.",
-    "tips": ["Never share passwords by message", "Use a password manager + 2FA"],
-    "check": {
-      "question": "It’s okay to email your password if the logo looks real.",
-      "options": ["True", "False"],
-      "answer": 1,
-      "explanation": "Never send passwords via email/messages."
-    }
+    "content": "Never share your passwords or personal details via email. Legitimate companies never ask for this information."
   },
   {
     "title": "Attachments & Downloads",
-    "body": "Unknown attachments (especially .exe/.scr) can install malware.",
-    "tips": ["Only open files you expect from known contacts", "If unsure, ask through another channel"],
-    "check": {
-      "question": "Which is riskier from an unknown sender?",
-      "options": ["report.pdf", "update.exe"],
-      "answer": 1,
-      "explanation": ".exe files can run code on your device."
-    }
+    "content": "Avoid downloading unexpected attachments or clicking random links. Always verify the sender first."
   },
   {
-    "title": "What to Do If You Clicked",
-    "body": "Don’t panic. Run a security scan and change passwords for important accounts.",
-    "tips": ["Scan device", "Change passwords", "Enable 2FA"],
-    "check": {
-      "question": "After clicking a weird link, best first move is…",
-      "options": ["Do nothing", "Run a security scan & change passwords"],
-      "answer": 1,
-      "explanation": "Act quickly to reduce risk."
-    }
+    "title": "What To Do If You Clicked",
+    "content": "If you accidentally click a phishing link, disconnect from the internet and report the incident immediately to your IT team or service provider."
   }
 ]
