@@ -1,70 +1,22 @@
 [
   {
-    "title": "Look-alike (Homoglyph) Domains",
-    "body": "Attackers often register fake domains that look almost identical to real ones. They might replace letters with similar-looking characters (e.g., amaz0n.com instead of amazon.com).",
-    "example": "Real: https://amazon.com\nFake: https://amaz0n.com",
-    "tips": [
-      "Always double-check URLs before entering credentials",
-      "Look closely for subtle spelling differences"
-    ],
-    "check": {
-      "question": "Which of these is a fake domain?",
-      "options": ["https://paypal.com", "https://paypa1.com"],
-      "answer": 1,
-      "explanation": "Attackers use similar-looking characters to trick you."
-    }
+    "title": "Spear Phishing",
+    "content": "Spear phishing targets specific individuals or organizations with personalized messages to increase success rates."
   },
   {
-    "title": "Header Analysis",
-    "body": "Email headers can reveal the real sending domain and servers used. Phishing emails often have suspicious or mismatched 'Received' paths and 'Return-Path' addresses.",
-    "tips": [
-      "Check the 'From' vs 'Return-Path' fields",
-      "Look for mismatched domains or unexpected senders"
-    ],
-    "check": {
-      "question": "Why check the 'Return-Path' field?",
-      "options": [
-        "It shows the display name",
-        "It reveals the actual sending domain",
-        "It contains the subject"
-      ],
-      "answer": 1,
-      "explanation": "Return-Path shows where the email actually originated."
-    }
+    "title": "Clone Phishing",
+    "content": "Clone phishing replicates a legitimate email you've already received but replaces attachments or links with malicious versions."
   },
   {
-    "title": "QR Code Phishing (Quishing)",
-    "body": "QR codes can hide malicious links. Attackers send emails with QR codes leading to fake login pages to bypass URL scanners.",
-    "tips": [
-      "Treat QR codes like links — verify before scanning",
-      "If unsure, use your official app instead of scanning"
-    ],
-    "check": {
-      "question": "Why can QR codes be dangerous?",
-      "options": [
-        "They always redirect to legitimate sites",
-        "They can hide malicious URLs",
-        "They can’t be scanned on phones"
-      ],
-      "answer": 1,
-      "explanation": "QR codes can mask phishing URLs to trick scanners and users."
-    }
+    "title": "Business Email Compromise (BEC)",
+    "content": "Attackers impersonate executives or vendors to trick employees into transferring funds or sensitive data."
   },
   {
-    "title": "Spear-Phishing",
-    "body": "Spear-phishing targets specific individuals with personalized information. These messages often seem legitimate because they use details the attacker already knows.",
-    "tips": [
-      "Be cautious even if a message uses personal details",
-      "Verify through a trusted channel before acting"
-    ],
-    "check": {
-      "question": "What makes spear-phishing harder to detect?",
-      "options": [
-        "It’s random and generic",
-        "It uses personal info to look legitimate"
-      ],
-      "answer": 1,
-      "explanation": "Spear-phishing feels authentic because it’s tailored."
-    }
+    "title": "Pharming & Domain Spoofing",
+    "content": "These methods redirect users to fake websites that look real, tricking them into entering login credentials."
+  },
+  {
+    "title": "Defensive Strategies",
+    "content": "Implement multi-factor authentication, monitor for domain lookalikes, and conduct phishing awareness training regularly."
   }
 ]
