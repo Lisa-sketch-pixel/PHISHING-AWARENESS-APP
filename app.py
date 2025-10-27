@@ -1,588 +1,220 @@
-# =========================================================
-# CYBERSECURITY AWARENESS SYSTEM & THREAT SIMULATOR
-# Final integrated version — Streamlit + Supabase + OpenAI
-# Author: Layla
-# =========================================================
-
 import streamlit as st
-import json
-from datetime import datetime
 from supabase import create_client
-import openai
+from datetime import datetime
+import json
+import os
+from openai import OpenAI
 
-# ---------------------------------------------------------
-# PAGE CONFIG
-# ---------------------------------------------------------
-st.set_page_config(
-    page_title="Cybersecurity Awareness & Threat Simulator",
-    page_icon="🛡️",
-    layout="wide",
-)
+# ==============================
+# 1️⃣  Load Secrets
+# ==============================
+SUPABASE_URL = st.secrets["supabase"]["url"]
+SUPABASE_KEY = st.secrets["supabase"]["key"]
+OPENAI_KEY = st.secrets["openai"]["api_key"]
 
-# ---------------------------------------------------------
-# LOAD SECRETS SAFELY
-# ---------------------------------------------------------
-# Your Streamlit -> Settings -> Secrets MUST look like:
-# [supabase]
-# url = "https://flrvzxeypjzbfbftyrit.supabase.co"
-# key = "your anon key here"
-#
-# [openai]
-# api_key = "sk-proj-....your key...."
-#
-# DO NOT change the key names below unless you also change secrets.
-try:
-    SUPABASE_URL = st.secrets["supabase"]["url"]
-    SUPABASE_KEY = st.secrets["supabase"]["key"]
-    OPENAI_API_KEY = st.secrets["openai"]["api_key"]
-except KeyError as e:
-    st.error(f"Missing key in Streamlit secrets: {e}")
-    st.stop()
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+client = OpenAI(api_key=OPENAI_KEY)
 
-# ---------------------------------------------------------
-# INIT CLIENTS
-# ---------------------------------------------------------
-try:
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-except Exception as e:
-    st.error(f"Failed to connect to Supabase: {e}")
-    st.stop()
-
-try:
-    openai.api_key = OPENAI_API_KEY
-except Exception as e:
-    st.error(f"Failed to configure OpenAI: {e}")
-    st.stop()
-
-# ---------------------------------------------------------
-# SMALL HELPERS
-# ---------------------------------------------------------
-def load_json(file_path: str):
-    """
-    Safely load static JSON content (lessons, quiz data, simulation emails).
-    Returns [] if file missing or invalid, instead of crashing the app.
-    """
+# ==============================
+# 2️⃣  Helper Functions
+# ==============================
+def load_json(path):
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
-    except FileNotFoundError:
-        st.warning(f"⚠️ Missing file: {file_path}")
-        return []
-    except json.JSONDecodeError:
-        st.error(f"❌ Invalid JSON format in {file_path}")
+    except Exception as e:
+        st.warning(f"⚠️ Missing or unreadable file: {path} — {e}")
         return []
 
-def go(page_name: str):
-    """Update which page should render."""
-    st.session_state["page"] = page_name
-
-def require_auth():
-    """Block access if user not logged in."""
-    if "user" not in st.session_state or not st.session_state["user"]:
-        st.warning("🔐 Please log in to access this section.")
-        login_page(show_only_login=True)
-        st.stop()
-
-def current_user_id():
-    """Return the logged-in user's UUID (or None)."""
-    if "user" in st.session_state and st.session_state["user"]:
-        return st.session_state["user"].id
-    return None
-
-# ---------------------------------------------------------
-# AI SUPPORT
-# ---------------------------------------------------------
-def get_ai_feedback(prompt_text: str):
-    """
-    Ask OpenAI to generate personalized cybersecurity guidance.
-    Used after quiz/simulation AND in the AI Assistant page.
-    """
+def save_simulation_result(user_email, score, total):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # model choice for cost/speed
+        result = supabase.table("simulation_results").insert({
+            "email": user_email,
+            "score": score,
+            "total": total,
+            "created_at": datetime.utcnow().isoformat()
+        }).execute()
+        if result.data:
+            st.success("✅ Simulation results saved successfully!")
+        else:
+            st.warning("⚠️ Unable to save results (check Supabase policy).")
+    except Exception as e:
+        st.error(f"Error saving simulation results: {e}")
+
+def generate_ai_response(prompt):
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
             messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a friendly, practical cybersecurity mentor. "
-                        "You explain phishing and online safety in simple, non-scary language. "
-                        "You give short, direct tips and examples."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": prompt_text,
-                },
-            ],
-            max_tokens=220,
-            temperature=0.7,
+                {"role": "system", "content": "You are a helpful cybersecurity tutor."},
+                {"role": "user", "content": prompt}
+            ]
         )
-        return response["choices"][0]["message"]["content"]
+        return completion.choices[0].message.content
     except Exception as e:
         st.error(f"AI error: {e}")
         return None
 
-# ---------------------------------------------------------
-# SUPABASE WRITE HELPERS
-# ---------------------------------------------------------
-def create_profile_if_needed(user_id: str, full_name: str = ""):
-    """
-    We try to insert a profile row for this user.
-    If it already exists (duplicate key), we silently ignore.
-    """
-    if not user_id:
-        return
-    try:
-        supabase.table("profiles").insert({
-            "id": user_id,
-            "full_name": full_name,
-            "created_at": datetime.utcnow().isoformat()
-        }).execute()
-        st.info("Profile created ✅")
-    except Exception:
-        # Most common failure case: row already exists (PRIMARY KEY conflict)
-        # or RLS timing if email not verified yet.
-        pass
+# ==============================
+# 3️⃣  Navigation Setup
+# ==============================
+st.sidebar.title("🌐 Navigation")
+menu = st.sidebar.radio("Go to page:", ["Home", "Learn", "Quiz", "Simulate", "Results", "AI Assistant", "Account"])
 
-def save_quiz_result(score: int, total_q: int, stars: int):
-    """
-    Save user's quiz performance into quiz_results.
-    Assumes RLS is configured to allow insert where auth.uid() = user_id.
-    """
-    uid = current_user_id()
-    if not uid:
-        st.warning("You must be logged in to save your quiz results.")
-        return
-    try:
-        supabase.table("quiz_results").insert({
-            "user_id": uid,
-            "score": score,
-            "total_questions": total_q,
-            "stars_earned": stars,
-            "date_taken": datetime.utcnow().isoformat()
-        }).execute()
-        st.success("✅ Quiz results saved.")
-    except Exception as e:
-        st.error(f"Error saving quiz results: {e}")
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "user" not in st.session_state:
+    st.session_state.user = None
 
-def save_simulation_result(correct: int, total: int, difficulty: str, stars: int):
-    """
-    Save user's simulation performance into simulation_results.
-    """
-    uid = current_user_id()
-    if not uid:
-        st.warning("You must be logged in to save your simulation results.")
-        return
-    try:
-        supabase.table("simulation_results").insert({
-            "user_id": uid,
-            "correct": correct,
-            "total": total,
-            "difficulty": difficulty,
-            "stars_earned": stars,
-            "date_taken": datetime.utcnow().isoformat()
-        }).execute()
-        st.success("✅ Simulation results saved.")
-    except Exception as e:
-        st.error(f"Error saving simulation results: {e}")
+# ==============================
+# 4️⃣  Authentication
+# ==============================
+if not st.session_state.logged_in:
+    st.title("🔐 Login / Sign Up")
+    tabs = st.tabs(["Login", "Sign Up"])
 
-# ---------------------------------------------------------
-# AUTH / ACCOUNT PAGE
-# ---------------------------------------------------------
-def login_page(show_only_login=False):
-    """
-    Sign Up + Login page.
-    If show_only_login=True, only show Login tab (used when blocking access).
-    """
-    st.header("🔐 Account Access")
-
-    if show_only_login:
-        tabs = [("Login", True)]
-    else:
-        tabs = [("Login", True), ("Sign Up", False)]
-
-    # mimic tabs manually, more control
-    active_tab = st.radio(
-        "Select",
-        [label for label, _ in tabs],
-        horizontal=True,
-        key="auth_tab_choice"
-    )
-
-    if active_tab == "Login":
-        st.subheader("Log In")
-        email = st.text_input("Email", key="login_email")
-        password = st.text_input("Password", type="password", key="login_password")
-        if st.button("Login", key="login_button"):
+    with tabs[0]:
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+        if st.button("Login"):
             try:
-                res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-                st.session_state["user"] = res.user
-                st.success(f"✅ Welcome back, {res.user.email}!")
-                go("Home")
-                st.rerun()
+                user = supabase.auth.sign_in_with_password({
+                    "email": email,
+                    "password": password
+                })
+                st.session_state.logged_in = True
+                st.session_state.user = email
+                st.success(f"Welcome back, {email}!")
+                st.experimental_rerun()
             except Exception as e:
                 st.error(f"Login failed: {e}")
 
-    else:
-        st.subheader("Create Account")
-        email = st.text_input("Email", key="signup_email")
-        password = st.text_input("Password", type="password", key="signup_password")
-        full_name = st.text_input("Your Name (optional)", key="signup_name")
-
-        st.caption(
-            "After sign-up you'll get a verification link by email. "
-            "You must verify before logging in."
-        )
-
-        if st.button("Sign Up", key="signup_button"):
+    with tabs[1]:
+        new_email = st.text_input("New Email")
+        new_password = st.text_input("Create Password", type="password")
+        if st.button("Create Account"):
             try:
-                res = supabase.auth.sign_up({"email": email, "password": password})
-
-                st.success("🎉 Account created! Please check your email to verify before logging in.")
-
-                # We TRY to create profile now.
-                # If email not verified yet, RLS/foreign key might block it.
-                # That's okay — there's also a DB trigger we set on auth.users
-                # that will insert into profiles after verification.
-                if getattr(res, "user", None):
-                    create_profile_if_needed(
-                        user_id=res.user.id,
-                        full_name=full_name.strip()
-                    )
+                user = supabase.auth.sign_up({
+                    "email": new_email,
+                    "password": new_password
+                })
+                st.success("🎉 Account created! Please verify your email before logging in.")
             except Exception as e:
                 st.error(f"Sign-up failed: {e}")
+    st.stop()
 
-    st.info(
-        "⚠️ If you see 'email not confirmed' or redirect issues, make sure your Supabase "
-        "Auth 'Site URL' and 'Redirect URLs' are set to your Streamlit app URL, "
-        "and that email signups + confirmations are enabled."
-    )
+# ==============================
+# 5️⃣  Main Pages
+# ==============================
+st.sidebar.markdown(f"**Logged in as:** {st.session_state.user}")
+if st.sidebar.button("🚪 Log Out"):
+    st.session_state.logged_in = False
+    st.session_state.user = None
+    st.experimental_rerun()
 
-# ---------------------------------------------------------
-# PAGE: HOME
-# ---------------------------------------------------------
-def home_section():
-    st.header("🏠 Cybersecurity Awareness & Threat Simulator")
-    st.write(
-        """
-        Welcome to the Cybersecurity Awareness & Threat Simulator.
+# ------------------------------
+# 🏠 Home
+# ------------------------------
+if menu == "Home":
+    st.title("🏠 Cybersecurity Awareness System")
+    st.write("Welcome to your Phishing Awareness & Threat Simulation App!")
+    st.info("Use the sidebar to navigate between learning, simulations, and AI support.")
 
-        This platform helps you:
-        • Understand what phishing is and how it works  
-        • Practice spotting fake / malicious emails  
-        • Take quizzes to test your awareness  
-        • See your personal progress over time  
-        • Chat with an AI cybersecurity assistant for safety tips
-        """
-    )
+# ------------------------------
+# 📘 Learn
+# ------------------------------
+elif menu == "Learn":
+    st.title("📚 Learn the Basics")
 
-    st.success(
-        "Tip: Start with **Learn** to unlock the **Quiz**. "
-        "Then try **Simulate** to test yourself with real-style phishing emails."
-    )
+    st.info("Below are lessons explaining phishing tricks and how to stay safe online.")
+    basic_cards = load_json("content/cards_basic.json")
+    adv_cards = load_json("content/cards_advanced.json")
 
-# ---------------------------------------------------------
-# PAGE: LEARN
-# ---------------------------------------------------------
-def learn_section():
-    st.header("📚 Learn the Basics")
+    with st.expander("🔹 Basic Lessons"):
+        for card in basic_cards:
+            st.subheader(card.get("title", "No Title"))
+            st.write(card.get("content", "No details yet."))
 
-    st.info(
-        "Below are short lessons explaining phishing, common tricks, and how to protect yourself. "
-        "Read through them to unlock the quiz."
-    )
+    with st.expander("🔸 Advanced Lessons"):
+        for card in adv_cards:
+            st.subheader(card.get("title", "No Title"))
+            st.write(card.get("content", "No details yet."))
 
-    lessons = load_json("content/cards_basic.json")
-    if not lessons:
-        st.warning("⚠️ No learning cards found. (content/cards_basic.json)")
-        return
-
-    for card in lessons:
-        title = card.get("title", "Untitled Topic")
-        body = card.get("content", "No details yet.")
-        with st.expander(title):
-            st.write(body)
-
-    st.success("✅ Nice! You've viewed the learning content.")
-    st.session_state["learn_viewed"] = True
-
-# ---------------------------------------------------------
-# PAGE: QUIZ
-# ---------------------------------------------------------
-def quiz_section():
-    require_auth()
-
-    # gate: must have viewed Learn first
-    if not st.session_state.get("learn_viewed", False):
-        st.header("🔒 Quiz Locked")
-        st.info("Please complete the Learn section before attempting the quiz.")
-        if st.button("Go to Learn"):
-            go("Learn")
-            st.rerun()
-        st.stop()
-
-    st.header("🧠 Phishing Awareness Quiz")
-    st.caption("Answer all questions and earn stars for correct answers.")
-
+# ------------------------------
+# 🧠 Quiz
+# ------------------------------
+elif menu == "Quiz":
+    st.title("🧩 Phishing Awareness Quiz")
     quiz_data = load_json("quizzes/main.json")
-    if not quiz_data:
-        st.warning("⚠️ No quiz data found. (quizzes/main.json)")
-        return
 
-    # We'll track answers in this run only (not across reruns)
-    # It's fine for MVP/demo.
-    score = 0
-    for q in quiz_data:
-        qid = q.get("id", "")
-        question = q.get("question", "Untitled Question")
-        options = q.get("options", [])
-        answer = q.get("answer", "")
+    if quiz_data:
+        score = 0
+        for i, q in enumerate(quiz_data):
+            st.markdown(f"**Q{i+1}. {q['question']}**")
+            answer = st.radio("", q["options"], key=f"quiz_{i}")
+            if answer == q["answer"]:
+                score += 1
+        if st.button("Submit Quiz"):
+            st.success(f"✅ You got {score}/{len(quiz_data)} correct!")
+    else:
+        st.warning("⚠️ No quiz data found!")
 
-        st.subheader(question)
-        choice = st.radio(
-            "Choose one:",
-            options,
-            index=None,
-            key=f"quiz_q_{qid}"
-        )
-        st.write("")  # spacing
+# ------------------------------
+# ✉️ Simulate
+# ------------------------------
+elif menu == "Simulate":
+    st.title("📨 Phishing Simulation")
+    st.write("Below are mock emails. Identify if each is Phishing or Safe.")
 
-        if choice == answer:
-            score += 1
+    sim_data = load_json("content/sim_templates.json")
+    if sim_data:
+        user_answers = {}
+        for i, mail in enumerate(sim_data):
+            st.markdown(f"**Email {i+1}:** {mail['text']}")
+            choice = st.radio(f"Is this email a phishing attempt?", ["Phishing", "Safe"], key=f"sim_{i}")
+            user_answers[i] = (choice == "Phishing")
 
-    if st.button("Submit Quiz", key="submit_quiz"):
-        total_q = len(quiz_data)
-        st.success(f"🎉 You got {score}/{total_q} correct!")
-        stars = score  # 1 star per correct
+        if st.button("Submit Responses"):
+            correct = sum(1 for i, mail in enumerate(sim_data)
+                          if user_answers[i] == (mail["label"] == "Phishing"))
+            st.success(f"✅ You identified {correct}/{len(sim_data)} emails correctly!")
+            save_simulation_result(st.session_state.user, correct, len(sim_data))
+    else:
+        st.warning("⚠️ Missing simulation templates in 'content/sim_templates.json'.")
 
-        # save in Supabase
-        save_quiz_result(score, total_q, stars)
-
-        # AI feedback
-        ai_text = get_ai_feedback(
-            f"A learner scored {score} out of {total_q} on a phishing awareness quiz. "
-            "Give supportive feedback, highlight one thing they did well, "
-            "and explain one practical tip to get better at spotting phishing."
-        )
-        if ai_text:
-            st.info(ai_text)
-
-# ---------------------------------------------------------
-# PAGE: SIMULATE
-# ---------------------------------------------------------
-def simulate_section():
-    require_auth()
-
-    st.header("📬 Phishing Simulation")
-    st.write(
-        "Below are mock emails. For each one, decide if it is 'Phishing' or 'Safe'. "
-        "Trust your instincts, but also pay attention to sender, links, urgency, and tone."
-    )
-
-    sim_data = load_json("content/simulation.json")
-    if not sim_data:
-        st.warning("⚠️ No simulation emails found. (content/simulation.json)")
-        return
-
-    correct = 0
-    total = len(sim_data)
-
-    # We'll collect answers dynamically
-    for email in sim_data:
-        sim_id = email.get("id", "")
-        subject = email.get("subject", "No Subject")
-        body = email.get("body", "No body text.")
-        is_phish = email.get("is_phishing", False)
-
-        with st.expander(f"📧 {subject}"):
-            st.write(body)
-            guess = st.radio(
-                "Is this email a phishing attempt?",
-                ["Phishing", "Safe"],
-                key=f"sim_{sim_id}"
-            )
-
-            # score logic
-            if guess == "Phishing" and is_phish:
-                correct += 1
-            elif guess == "Safe" and not is_phish:
-                correct += 1
-
-    if st.button("Submit Responses", key="submit_sim"):
-        st.success(f"✅ You identified {correct}/{total} emails correctly.")
-        stars = correct  # 1 star per correct classification
-
-        # save to Supabase
-        save_simulation_result(correct, total, "Normal", stars)
-
-        # AI feedback
-        ai_text = get_ai_feedback(
-            f"A learner correctly identified {correct} out of {total} simulated phishing emails. "
-            "Give a short analysis of what that means and one realistic next step they should take "
-            "to improve their ability to spot scams in real life."
-        )
-        if ai_text:
-            st.info(ai_text)
-
-# ---------------------------------------------------------
-# PAGE: RESULTS / DASHBOARD
-# ---------------------------------------------------------
-def results_section():
-    require_auth()
-
-    st.header("📈 Your Progress")
-    st.caption("These stats are private to you. We only ever show your own data.")
-
-    uid = current_user_id()
-    if not uid:
-        st.error("No authenticated user ID found.")
-        st.stop()
-
-    # Pull quiz history
+# ------------------------------
+# 📊 Results
+# ------------------------------
+elif menu == "Results":
+    st.title("📊 Your Progress")
     try:
-        quiz_resp = supabase.table("quiz_results").select("*").eq("user_id", uid).execute()
-        quiz_rows = quiz_resp.data if hasattr(quiz_resp, "data") else []
-    except Exception as e:
-        quiz_rows = []
-        st.error(f"Couldn't load quiz results: {e}")
-
-    # Pull simulation history
-    try:
-        sim_resp = supabase.table("simulation_results").select("*").eq("user_id", uid).execute()
-        sim_rows = sim_resp.data if hasattr(sim_resp, "data") else []
-    except Exception as e:
-        sim_rows = []
-        st.error(f"Couldn't load simulation results: {e}")
-
-    # Compute summary
-    total_quizzes = len(quiz_rows)
-    total_sims = len(sim_rows)
-    if total_quizzes > 0:
-        avg_score_raw = sum([r["score"] for r in quiz_rows]) / total_quizzes
-        # Convert to percentage of correct answers
-        avg_pct = []
-        for r in quiz_rows:
-            if r["total_questions"]:
-                pct = (r["score"] / r["total_questions"]) * 100.0
-                avg_pct.append(pct)
-        avg_score_pct = round(sum(avg_pct) / len(avg_pct), 2) if avg_pct else 0.0
-    else:
-        avg_score_raw = 0
-        avg_score_pct = 0.0
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Quizzes Completed", total_quizzes)
-    col2.metric("Avg Quiz Score %", f"{avg_score_pct}%")
-    col3.metric("Simulations Attempted", total_sims)
-
-    st.write("---")
-
-    st.subheader("📝 Recent Quiz Attempts")
-    if quiz_rows:
-        for row in sorted(quiz_rows, key=lambda r: r["date_taken"], reverse=True)[:5]:
-            ts = row["date_taken"]
-            st.write(
-                f"- {ts}: {row['score']}/{row['total_questions']} correct "
-                f"({row['stars_earned']} ⭐)"
-            )
-    else:
-        st.write("No quiz attempts yet.")
-
-    st.subheader("📬 Recent Simulation Attempts")
-    if sim_rows:
-        for row in sorted(sim_rows, key=lambda r: r["date_taken"], reverse=True)[:5]:
-            ts = row["date_taken"]
-            st.write(
-                f"- {ts}: {row['correct']}/{row['total']} emails identified "
-                f"({row['stars_earned']} ⭐)"
-            )
-    else:
-        st.write("No simulation attempts yet.")
-
-# ---------------------------------------------------------
-# PAGE: AI ASSISTANT
-# ---------------------------------------------------------
-def ai_assistant_section():
-    """
-    This page is a simple 'Ask the cybersecurity coach' chat.
-    User types a question, AI responds.
-    """
-    require_auth()
-
-    st.header("🤖 AI Cyber Coach")
-    st.write(
-        "Ask anything about phishing, suspicious messages, password safety, "
-        "scams, fake login pages, social engineering, etc."
-    )
-
-    user_q = st.text_area(
-        "Your question:",
-        placeholder="Example: How do I know if a link is safe before I click it?",
-        key="ai_user_q"
-    )
-
-    if st.button("Ask AI", key="ask_ai_btn"):
-        if not user_q.strip():
-            st.warning("Please type a question first.")
+        data = supabase.table("simulation_results").select("*").eq("email", st.session_state.user).execute()
+        if data.data:
+            for row in data.data:
+                st.write(f"**Score:** {row['score']}/{row['total']} on {row['created_at']}")
         else:
-            with st.spinner("Thinking..."):
-                reply = get_ai_feedback(
-                    "User cybersecurity question: " + user_q.strip() +
-                    "\nGive a clear, calm, real-world answer for a non-technical person."
-                )
-            if reply:
-                st.success("AI Coach says:")
-                st.write(reply)
+            st.info("No simulation results found yet.")
+    except Exception as e:
+        st.error(f"Error loading results: {e}")
 
-    st.info("Note: This AI cannot see your passwords, inbox, or personal data. It only sees what you type here.")
+# ------------------------------
+# 🤖 AI Assistant
+# ------------------------------
+elif menu == "AI Assistant":
+    st.title("🤖 Cybersecurity AI Assistant")
+    prompt = st.text_area("Ask the AI about phishing, cybersecurity, or best practices:")
+    if st.button("Ask AI"):
+        if prompt.strip():
+            response = generate_ai_response(prompt)
+            if response:
+                st.markdown(f"**AI:** {response}")
+        else:
+            st.warning("Please enter a question.")
 
-# ---------------------------------------------------------
-# SIDEBAR NAVIGATION & STATE
-# ---------------------------------------------------------
-PAGES = {
-    "Home": home_section,
-    "Learn": learn_section,
-    "Quiz": quiz_section,
-    "Simulate": simulate_section,
-    "Results": results_section,
-    "AI Assistant": ai_assistant_section,
-    "Account": login_page,
-}
-
-if "page" not in st.session_state:
-    st.session_state["page"] = "Home"
-
-st.sidebar.title("🌐 Navigation")
-choice = st.sidebar.radio(
-    "Go to page:",
-    list(PAGES.keys()),
-    index=list(PAGES.keys()).index(st.session_state["page"]),
-)
-st.session_state["page"] = choice
-
-# show who's logged in + logout button
-if "user" in st.session_state and st.session_state["user"]:
-    user_email = st.session_state["user"].email
-    st.sidebar.caption(f"👤 Logged in as: {user_email}")
-
-    if st.sidebar.button("🚪 Log Out"):
-        try:
-            supabase.auth.sign_out()
-        except Exception:
-            pass
-        st.session_state["user"] = None
-        st.success("You’ve been logged out.")
-        st.rerun()
-else:
-    st.sidebar.caption("Not signed in")
-    st.sidebar.write("Go to **Account** to Sign Up / Log In.")
-
-st.sidebar.write("---")
-st.sidebar.success("If you see this app, deployment is working ✅")
-
-# ---------------------------------------------------------
-# RENDER CURRENT PAGE
-# ---------------------------------------------------------
-PAGES[choice]()
-
-
+# ------------------------------
+# ⚙️ Account
+# ------------------------------
+elif menu == "Account":
+    st.title("👤 Account Settings")
+    st.write(f"Email: {st.session_state.user}")
+    st.info("Feature expansion coming soon!")
