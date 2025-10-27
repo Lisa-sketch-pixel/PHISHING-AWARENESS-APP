@@ -1,44 +1,72 @@
 [
   {
-    "label": "phishing",
-    "from": ["security@random-mailer.cc", "noreply@secure-update.info"],
-    "brand": ["Your Bank", "ParcelCo", "Account Center"],
-    "subject": "{brand}: Action required in {mins} minutes",
-    "body": "We noticed an issue with your account. To avoid suspension, confirm your details now: {link}\nTicket: #{ticket}\n\nIf you do not act immediately, your access will be limited."
+    "id": 1,
+    "level": "basic",
+    "subject": "[Bank Alert] Your Account Has Been Locked",
+    "body": "We detected suspicious activity on your account. Click the link below to verify your identity or your account will be permanently disabled in 24 hours:\nhttp://secure-online-banking-verify-id.com",
+    "is_phishing": true
   },
   {
-    "label": "phishing",
-    "from": ["rewards@promo-center.tk", "notify@lucky-prize.cc"],
-    "brand": ["PromoCenter"],
-    "subject": "Congratulations! Prize awaiting confirmation",
-    "body": "You have been selected to receive a reward. Confirm your identity here: {link}\nUse code {code} within 30 minutes."
+    "id": 2,
+    "level": "basic",
+    "subject": "Delivery Attempt Failed",
+    "body": "Hello! We attempted to deliver your package today but nobody was home. Please re-confirm your address details here to schedule redelivery:\nhttps://dhl-verify-delivery-info.com",
+    "is_phishing": true
   },
   {
-    "label": "phishing",
-    "from": ["billing@update-check.cc", "alerts@security-check.cc"],
-    "brand": ["PayGate"],
-    "subject": "Payment failed — verify now",
-    "body": "Your recent payment failed. Avoid account hold by verifying immediately: {link}"
+    "id": 3,
+    "level": "basic",
+    "subject": "Welcome to Our Security Newsletter",
+    "body": "Hi there! You’re receiving this official security tips newsletter because you opted in. This message is informational only — no links to click and no actions required.",
+    "is_phishing": false
   },
   {
-    "label": "safe",
-    "from": ["no-reply@parcelco.com", "updates@parcelco.com"],
-    "brand": ["ParcelCo"],
-    "subject": "Your ParcelCo delivery update",
-    "body": "Your package is on the way. Track in the ParcelCo app.\nSupport is available via the official website."
+    "id": 4,
+    "level": "basic",
+    "subject": "Password Expiring Today",
+    "body": "Your company password expires in 1 hour. Reset it now:\nhttp://it-admin-security-reset.co\n\nFailure to reset will cause immediate account suspension.",
+    "is_phishing": true
   },
   {
-    "label": "safe",
-    "from": ["hr@company.com", "benefits@company.com"],
-    "brand": ["Company HR"],
-    "subject": "HR: Benefits reminder",
-    "body": "This is a reminder to review your benefits in the official HR portal. Please log in through the company site."
+    "id": 5,
+    "level": "basic",
+    "subject": "Receipt for Your Purchase",
+    "body": "Thanks for your order! Attached is your official receipt. If you did not make this purchase, please contact support through the official website or app — do not reply to this email with sensitive info.",
+    "is_phishing": false
   },
   {
-    "label": "safe",
-    "from": ["news@bank.com", "security@bank.com"],
-    "brand": ["Your Bank"],
-    "subject": "Security tip of the week",
-    "body": "Remember: we will never ask for your password over email. Visit our official app for account updates."
+    "id": 6,
+    "level": "advanced",
+    "subject": "Payroll Confirmation Needed Before 5PM",
+    "body": "Hi, this is HR. We're updating salaries for this cycle. Please log in and confirm your banking details immediately so we don’t delay your payment:\nhttps://internal-payroll-update.com/login",
+    "is_phishing": true
+  },
+  {
+    "id": 7,
+    "level": "advanced",
+    "subject": "Invoice #88213 Overdue",
+    "body": "Good afternoon,\n\nYour invoice #88213 is now 7 days overdue. Please use the secure link below to settle the balance:\nhttp://accounts-payable-clearing.com\n\nFailure to pay may result in service interruption.",
+    "is_phishing": true
+  },
+  {
+    "id": 8,
+    "level": "advanced",
+    "subject": "New Remote Work Policy Update",
+    "body": "Hi team,\n\nPlease review the attached PDF with updates to our remote work and flexible hours policy effective next month.\n\n– HR & Operations",
+    "is_phishing": false
+  },
+  {
+    "id": 9,
+    "level": "advanced",
+    "subject": "Urgent: Are You On-Site?",
+    "body": "Hey, are you available? I need you to buy 4 gift cards and send me the codes ASAP. I can't call right now, but this is confidential. Reply when done.\n\n– Your Manager",
+    "is_phishing": true
+  },
+  {
+    "id": 10,
+    "level": "advanced",
+    "subject": "University IT Notice: Mailbox Almost Full",
+    "body": "Your inbox storage is at 97%. Increase your quota here:\nhttp://student-it-helpdesk-mailupgrade.edu\n\nFailure to do so will result in loss of recent messages.",
+    "is_phishing": true
   }
 ]
