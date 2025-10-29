@@ -1,7 +1,7 @@
 [
-  {"title":"What is Phishing?","content":"Phishing is when attackers pretend to be trusted contacts to steal passwords, money, or data."},
-  {"title":"Urgency & Pressure","content":"Messages that say 'act now or lose access' try to make you rush without thinking."},
-  {"title":"Links & Attachments","content":"Avoid clicking unknown links or opening unexpected attachments. Verify first."},
-  {"title":"Sender Check","content":"Inspect the sender’s address carefully — tiny misspellings are common tricks."},
-  {"title":"If You Clicked","content":"Change your password and run a malware scan. Enable MFA to reduce damage."}
+  {"title":"Suspicious Email Traits","content":"Urgent tone, threats, spelling errors, unknown sender, mismatched display name vs address."},
+  {"title":"Links & Domain Tricks","content":"Hover to preview URLs. Lookalikes like paypa1.com or odd subdomains are malicious."},
+  {"title":"Attachments","content":"Unexpected ZIP/EXE/HTML attachments can deliver malware. Verify with the sender."},
+  {"title":"Requests for Credentials","content":"Legit companies will not ask for passwords, 2FA codes, or banking PINs over email."},
+  {"title":"If You Clicked","content":"Disconnect, change password, enable MFA, run a malware scan, and inform support/security."}
 ]
