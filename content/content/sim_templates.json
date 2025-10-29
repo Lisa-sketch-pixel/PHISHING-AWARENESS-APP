@@ -1,12 +1,12 @@
 [
-  {"subject":"[Bank Alert] Your Account Has Been Locked","body":"We detected suspicious activity. Verify now: http://secure-online-banking-verify-id.com","is_phishing":true},
-  {"subject":"Delivery Attempt Failed","body":"We tried to deliver your package. Reschedule here: https://dhl-verify-delivery-info.com","is_phishing":true},
-  {"subject":"Welcome to Our Security Newsletter","body":"Official monthly security tips. No action required.","is_phishing":false},
-  {"subject":"Password Expiring Today","body":"Your password expires in 1 hour. Reset: http://it-admin-security-reset.co","is_phishing":true},
-  {"subject":"Receipt for Your Purchase","body":"Thanks for your order! Attached is your receipt. Contact support only via official site.","is_phishing":false},
-  {"subject":"Payroll Confirmation Needed Before 5PM","body":"Hi, this is HR. Please confirm your banking details: https://internal-payroll-update.com/login","is_phishing":true},
-  {"subject":"Invoice #88213 Overdue","body":"Your invoice is overdue. Pay via: http://accounts-payable-clearing.com","is_phishing":true},
-  {"subject":"New Remote Work Policy","body":"Please review the attached PDF with updated remote work policy.","is_phishing":false},
-  {"subject":"Urgent: Are You On-Site?","body":"Buy 4 gift cards and send me the codes ASAP. This is confidential.","is_phishing":true},
-  {"subject":"University IT Notice: Mailbox Almost Full","body":"Increase your quota here: http://student-it-helpdesk-mailupgrade.edu","is_phishing":true}
+  {"level":"basic","subject":"[Bank Alert] Account Locked","body":"We detected suspicious activity. Verify now: http://secure-id-verify-login.com","is_phishing":true},
+  {"level":"basic","subject":"Delivery Attempt Failed","body":"Reconfirm address to reschedule: https://courier-resolve-info.com","is_phishing":true},
+  {"level":"basic","subject":"Security Tips Newsletter","body":"Monthly security tips. No action required.","is_phishing":false},
+  {"level":"basic","subject":"Password Expiring","body":"Your password expires in 1 hour. Reset here: http://it-help-reset.co","is_phishing":true},
+  {"level":"basic","subject":"Receipt for Your Purchase","body":"Thanks for your order! Contact support only via official app/site.","is_phishing":false},
+  {"level":"advanced","subject":"Payroll Confirmation Needed","body":"HR: confirm banking details by 5PM: https://internal-payroll-update.com/login","is_phishing":true},
+  {"level":"advanced","subject":"Invoice #88213 Overdue","body":"Settle balance today: http://ap-clearing-portal.com","is_phishing":true},
+  {"level":"advanced","subject":"New Remote Work Policy","body":"Review attached PDF with updated remote work policy.","is_phishing":false},
+  {"level":"advanced","subject":"Urgent: Are You On-Site?","body":"Buy 4 gift cards now and send the codes. Confidential.","is_phishing":true},
+  {"level":"advanced","subject":"University IT: Mailbox Full","body":"Increase your quota: http://student-mailupgrade.edu","is_phishing":true}
 ]
