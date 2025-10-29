@@ -1,132 +1,164 @@
-# ============================================
-# Cybersecurity Awareness — Phish or Safe Game
-# Streamlit + Supabase + (Optional) OpenAI AI
-# ============================================
+# ================================
+# Phish or Safe — Cyber Galaxy 🌌
+# Streamlit + Supabase + (Optional) OpenAI
+# ================================
 
-import os, json, random
+import os, json, random, base64
 from datetime import datetime
 import streamlit as st
 from supabase import create_client, Client
 
 # -----------------------------
-# CONFIG & CLIENT INITIALIZATION
+# Page config + Galaxy theme
 # -----------------------------
 st.set_page_config(page_title="Phish or Safe: The Cyber Challenge", page_icon="🛡️", layout="wide")
+# Background gradient + subtle card glow
+st.markdown("""
+<style>
+/* page background */
+.stApp {
+  background: radial-gradient(1200px 600px at 10% 10%, #1c1f38 0%, #0f1224 40%, #090b18 100%) !important;
+}
+/* headers glow */
+h1, h2, h3 { text-shadow: 0 0 10px rgba(120,100,255,.25); }
+/* cards */
+.block-container { padding-top: 2rem; }
+.stExpander, .stButton>button, .stRadio, .stSelectbox, .stTextInput, .stTabs [data-baseweb="tab"] {
+  border-radius: 12px !important;
+}
+/* buttons */
+.stButton>button {
+  background: linear-gradient(90deg,#6a5cff,#9a5fff);
+  border: 0; color: white; font-weight: 600;
+  box-shadow: 0 8px 20px rgba(120,100,255,.25);
+}
+.stButton>button:hover { filter: brightness(1.07); }
+/* metrics stars line */
+.starline { font-size:1.4rem; letter-spacing:1px }
+.badge {
+  display:inline-block; padding:.35rem .7rem; border-radius:999px; font-weight:700;
+  background: #1e223f; color: #e6e6ff; border: 1px solid rgba(150,130,255,.35);
+}
+</style>
+""", unsafe_allow_html=True)
 
-# Secrets (must exist in Streamlit Cloud -> Settings -> Secrets)
-# [supabase]
-# url = "https://<your>.supabase.co"
-# key = "<anon_key>"
-# [openai]
-# api_key = "sk-...."
-SUPABASE_URL = st.secrets["supabase"]["url"]
-SUPABASE_KEY = st.secrets["supabase"]["key"]
+# -----------------------------
+# Defensive secrets loader
+# -----------------------------
+SUPABASE_URL = st.secrets.get("supabase", {}).get("url") or st.secrets.get("SUPABASE_URL")
+SUPABASE_KEY = st.secrets.get("supabase", {}).get("key") or st.secrets.get("SUPABASE_KEY")
+OPENAI_KEY   = st.secrets.get("openai", {}).get("api_key") or st.secrets.get("OPENAI_API_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    st.error("🚨 Missing Supabase credentials in Secrets. Add them in Streamlit → Settings → Secrets.")
+    st.stop()
+
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # -----------------------------
-# AI (with graceful fallback)
+# Tiny celebration sound (base64)
 # -----------------------------
-def ai_summary_feedback(text: str) -> str:
-    """
-    Try OpenAI (either new SDK or legacy). If it fails (quota/SDK), fallback to offline tips.
-    """
-    # Try new SDK
+# a short 'ping' tone (22050Hz mono wav) base64-encoded
+PING_WAV = (
+    "UklGRrQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQwAAAABAQEBAgICAwMDAwQE"
+    "BAUFBQYGBgcHBwgICAkJCgoKCwsMDQ0ODw8QEBA="
+)
+def play_chime():
     try:
-        from openai import OpenAI
-        client = OpenAI(api_key=st.secrets["openai"]["api_key"])
-        r = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a friendly cybersecurity mentor. Keep responses short and practical."},
-                {"role": "user", "content": text}
-            ],
-            max_tokens=220,
-            temperature=0.7
-        )
-        return r.choices[0].message.content.strip()
+        audio_bytes = base64.b64decode(PING_WAV)
+        st.audio(audio_bytes, format="audio/wav", start_time=0)
     except Exception:
         pass
 
-    # Try legacy SDK
-    try:
-        import openai
-        openai.api_key = st.secrets["openai"]["api_key"]
-        r = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a friendly cybersecurity mentor. Keep responses short and practical."},
-                {"role": "user", "content": text}
-            ],
-            max_tokens=220,
-            temperature=0.7
-        )
-        return r["choices"][0]["message"]["content"].strip()
-    except Exception:
-        # Offline fallback
-        fallback = [
-            "Great effort! 🚀 Focus on checking sender addresses and hovering links before clicking.",
-            "Nice work! ⭐ Watch for urgency, strange domains, and unexpected attachments.",
-            "Keep it up! 🔐 Enable MFA, use strong passwords, and verify requests via official channels.",
-            "Tip: Real services won’t ask for passwords or codes by email. When in doubt, don’t click.",
-        ]
-        return random.choice(fallback)
-
 # -----------------------------
-# HELPERS
+# Helpers
 # -----------------------------
 BASE_DIR = os.path.dirname(__file__)
 
-def load_json(rel_path: str, default=None):
-    """
-    Robust loader: joins base dir + rel path, returns default on failure.
-    """
+def load_json(path, default=None):
     default = default or []
     try:
-        with open(os.path.join(BASE_DIR, rel_path), "r", encoding="utf-8") as f:
+        with open(os.path.join(BASE_DIR, path), "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
-        st.warning(f"⚠️ Missing or unreadable file: {rel_path} — {e}")
+        st.warning(f"⚠️ Missing or unreadable file: {path} — {e}")
         return default
 
-def save_game_result(email: str, score: int, total: int, mode: str = "game"):
-    """
-    Saves result to 'simulation_results' (requires an 'email' column).
-    For RLS: create an anon INSERT policy allowing true (demo) or bind to auth.uid().
-    """
+def save_result(email, score, total, level, mode):
     try:
         supabase.table("simulation_results").insert({
             "email": email or "guest@demo",
-            "score": score,
-            "total": total,
-            "mode": mode,
+            "score": score, "total": total,
+            "level": level, "mode": mode,
             "created_at": datetime.utcnow().isoformat()
         }).execute()
     except Exception as e:
         st.warning(f"Could not save results (RLS/policy?): {e}")
 
-# -----------------------------
-# SESSION STATE
-# -----------------------------
-if "user_email" not in st.session_state:
-    st.session_state.user_email = None
-if "page" not in st.session_state:
-    st.session_state.page = "Home"
-if "game" not in st.session_state:
-    st.session_state.game = {
-        "bank": [],
-        "index": 0,
-        "score": 0,
-        "stars": 0,
-        "finished": False
-    }
+def ai_summary(text: str) -> str:
+    # Try new SDK
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=OPENAI_KEY)
+        r = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role":"system","content":"You are a friendly cybersecurity coach. Be concise and practical."},
+                {"role":"user","content": text}
+            ],
+            max_tokens=220, temperature=0.7
+        )
+        return r.choices[0].message.content.strip()
+    except Exception:
+        pass
+    # Try legacy SDK
+    try:
+        import openai
+        openai.api_key = OPENAI_KEY
+        r = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role":"system","content":"You are a friendly cybersecurity coach. Be concise and practical."},
+                {"role":"user","content": text}
+            ],
+            max_tokens=220, temperature=0.7
+        )
+        return r["choices"][0]["message"]["content"].strip()
+    except Exception:
+        # Offline fallback
+        tips = [
+            "Great work! 👏 Watch for urgency, odd sender domains, and unexpected attachments.",
+            "Tip: Hover links to preview URLs. Real services don’t ask for passwords or codes by email.",
+            "Enable MFA and use a password manager. When in doubt, verify via the official app/site."
+        ]
+        return random.choice(tips)
+
+def badge_for(score, total):
+    pct = (score/total*100) if total else 0
+    if pct >= 80:  return "🥇 Gold Defender"
+    if pct >= 50:  return "🥈 Silver Scout"
+    return "🥉 Bronze Trainee"
+
+def star_bar(n):  # visual cap at 10
+    n = max(0, min(10, n))
+    return "⭐"*n + "☆"*(10-n)
 
 # -----------------------------
-# AUTH (SIMPLE)
+# Session State
 # -----------------------------
-def login_box():
+if "user_email" not in st.session_state: st.session_state.user_email = None
+if "level" not in st.session_state:      st.session_state.level = "Basic"  # Basic | Advanced
+if "learn_done" not in st.session_state: st.session_state.learn_done = {"Basic": False, "Advanced": False}
+if "game" not in st.session_state:
+    st.session_state.game = {"bank": [], "index": 0, "score": 0, "stars": 0, "finished": False}
+
+# -----------------------------
+# Auth (simple)
+# -----------------------------
+def login_ui():
     st.subheader("🔐 Log in")
     email = st.text_input("Email", key="login_email")
-    pwd = st.text_input("Password", type="password", key="login_pwd")
+    pwd   = st.text_input("Password", type="password", key="login_pwd")
     if st.button("Login", use_container_width=True):
         try:
             res = supabase.auth.sign_in_with_password({"email": email, "password": pwd})
@@ -135,165 +167,172 @@ def login_box():
         except Exception as e:
             st.error(f"Login failed: {e}")
 
-def signup_box():
+def signup_ui():
     st.subheader("✨ Create account")
     email = st.text_input("New email", key="signup_email")
-    pwd = st.text_input("Create password", type="password", key="signup_pwd")
+    pwd   = st.text_input("Create password", type="password", key="signup_pwd")
     if st.button("Sign Up", use_container_width=True):
         try:
             supabase.auth.sign_up({"email": email, "password": pwd})
-            st.success("Account created! Please verify your email before logging in.")
+            st.success("Account created! Verify your email before logging in.")
         except Exception as e:
             st.error(f"Sign-up failed: {e}")
 
 # -----------------------------
-# UI HELPERS (GAMIFICATION)
+# Content builders (aligned)
 # -----------------------------
-def badge_for_score(score: int, total: int):
-    pct = (score / total) * 100 if total else 0
-    if pct >= 80:
-        return "🥇 **Gold Defender** — Incredible spotting skills!"
-    elif pct >= 50:
-        return "🥈 **Silver Scout** — Nice work! Keep sharpening your eye."
+def load_lessons(level):
+    if level == "Basic":
+        return load_json("content/cards_basic.json", default=[
+            {"title":"Suspicious Email Traits","content":"Urgency, threats, poor grammar, unknown sender, mismatched display name vs address."},
+            {"title":"Links & Domains","content":"Hover to preview URLs. Lookalikes like paypa1.com are malicious."},
+            {"title":"Attachments","content":"Unexpected ZIP/EXE/HTML attachments are dangerous."},
+            {"title":"Personal Info","content":"Legit orgs won’t ask for passwords/2FA codes by email."}
+        ])
     else:
-        return "🥉 **Bronze Trainee** — Good start, practice makes perfect!"
+        return load_json("content/cards_advanced.json", default=[
+            {"title":"Spear Phishing","content":"Personalized scams using job roles/projects/social info."},
+            {"title":"Business Email Compromise","content":"Exec/vendor impersonation requesting urgent payment."},
+            {"title":"Credential Harvesting","content":"Fake login portals; always open official site instead."},
+            {"title":"Malicious Attachments","content":"Office macros, HTML attachments, or links to drive-by malware."}
+        ])
 
-def star_bar(n: int):
-    return "⭐" * n + "☆" * (10 - n if n <= 10 else 0)
-
-# -----------------------------
-# PAGES
-# -----------------------------
-def page_home():
-    st.title("🛡️ Phish or Safe: The Cyber Challenge")
-    st.write("Learn, play, and earn badges while training your phishing-spotting skills.")
-    st.write("Use the sidebar to **Learn**, play the **Game**, view **Results**, or chat with the **AI Assistant**.")
-
-def page_learn():
-    st.header("📚 Learn — Basic & Advanced")
-    tab1, tab2 = st.tabs(["🟢 Basic", "🔵 Advanced"])
-
-    basic = load_json("content/cards_basic.json", default=[
-        {"title": "What is Phishing?", "content": "Phishing is when attackers trick you into revealing data using fake messages."},
-        {"title": "Urgency & Pressure", "content": "Warnings like 'account will be closed' try to make you rush."},
-        {"title": "Attachments & Links", "content": "Unexpected attachments or odd links are a red flag."},
-    ])
-    adv = load_json("content/cards_advanced.json", default=[
-        {"title": "Spear Phishing", "content": "Personalized attacks using info about you or your org."},
-        {"title": "BEC", "content": "Impersonation of executives or vendors to request payments."},
-        {"title": "Domain Spoofing", "content": "paypa1.com vs paypal.com — subtle domain tricks."},
-    ])
-
-    with tab1:
-        for c in basic:
-            with st.expander(c.get("title", "Untitled")):
-                st.write(c.get("content", "No details."))
-
-    with tab2:
-        for c in adv:
-            with st.expander(c.get("title", "Untitled")):
-                st.write(c.get("content", "No details."))
-
-    st.success("✅ Learning modules ready — jump into the game when you’re ready!")
-
-def build_challenge_bank():
-    """
-    Build a combined challenge bank from:
-      - content/simulation.json  (preferred)
-      - OR content/sim_templates.json (fallback)
-      - quizzes/main.json        (MCQ items)
-
-    Email items -> binary 'Phish'/'Safe'.
-    Quiz items  -> multiple-choice.
-    """
+def build_bank_for_level(level):
     bank = []
-
-    # 1) Email simulations (preferred filename)
+    # Email simulations (preferred) with level flag
     emails = load_json("content/simulation.json")
     if not emails:
-        # fallback filename used earlier
         emails = load_json("content/sim_templates.json")
-
     for i, em in enumerate(emails):
-        subj = em.get("subject") or em.get("Subject") or f"Email {i+1}"
-        body = em.get("body") or em.get("text") or "No body text provided."
+        # If your JSON contains "level": "basic"/"advanced", we’ll filter; else split by index
+        em_level = (em.get("level") or "basic").lower()
+        want_lvl = level.lower()
+        # heuristic: if file has no explicit levels, split first half basic, rest advanced
+        if "level" not in em and want_lvl == "basic" and i >= len(emails)//2: 
+            continue
+        if "level" not in em and want_lvl == "advanced" and i < len(emails)//2:
+            continue
+        if "level" in em and em_level != want_lvl: 
+            continue
+        subj = em.get("subject", f"Email {i+1}")
+        body = em.get("body", "No content")
         is_phish = bool(em.get("is_phishing") or (em.get("label") == "Phishing"))
-        bank.append({
-            "type": "email",
-            "subject": subj,
-            "body": body,
-            "answer": "Phishing" if is_phish else "Safe"
-        })
+        bank.append({"type":"email","subject":subj,"body":body,"answer":"Phishing" if is_phish else "Safe"})
 
-    # 2) Quiz MCQs
+    # MCQ quiz (optionally with level in JSON; else same heuristic)
     quiz = load_json("quizzes/main.json")
-    for q in quiz:
+    for j, q in enumerate(quiz):
+        q_level = (q.get("level") or "basic").lower()
+        if "level" in q and q_level != level.lower(): 
+            continue
+        if "level" not in q:
+            # split by index if not provided
+            half = len(quiz)//2
+            if level == "Basic" and j >= half: 
+                continue
+            if level == "Advanced" and j < half: 
+                continue
         bank.append({
-            "type": "quiz",
-            "question": q.get("question", "Untitled question"),
+            "type":"quiz",
+            "question": q.get("question", "Untitled"),
             "options": q.get("options", []),
-            "answer": q.get("answer", None)
+            "answer": q.get("answer")
         })
 
-    # Shuffle for variety
     random.shuffle(bank)
     return bank
 
-def reset_game():
-    st.session_state.game = {
-        "bank": build_challenge_bank(),
-        "index": 0,
-        "score": 0,
-        "stars": 0,
-        "finished": False
-    }
+def reset_game(level):
+    st.session_state.game = {"bank": build_bank_for_level(level), "index": 0, "score": 0, "stars": 0, "finished": False}
 
-def page_game():
-    st.header("🎮 Phish or Safe: The Cyber Challenge")
-    st.caption("Decide quickly and wisely. Earn ⭐ for correct answers and claim your badge at the end!")
+# -----------------------------
+# Pages
+# -----------------------------
+def page_home():
+    st.title("🛡️ Phish or Safe: The Cyber Challenge")
+    st.caption("Learn → Play → Earn badges. Train your eye to spot phishing like a pro.")
+    st.write("Use the sidebar to choose **level**, start with **Learn**, then play the **Game**, and view your **Results**.")
+    if st.session_state.user_email:
+        st.success(f"Signed in as {st.session_state.user_email}")
+    else:
+        st.info("You’re playing as guest. Results save under guest@demo.")
 
-    # Initialize bank on first visit
-    if not st.session_state.game["bank"]:
-        reset_game()
+def page_learn(level):
+    st.header(f"📚 Learn — {level}")
+    lessons = load_lessons(level)
+    for c in lessons:
+        with st.expander(c.get("title","Untitled")):
+            st.write(c.get("content","No details."))
+    st.markdown("<span class='badge'>Complete this section to unlock the game</span>", unsafe_allow_html=True)
+    if st.button("✅ Mark Learn as Complete", use_container_width=True):
+        st.session_state.learn_done[level] = True
+        st.balloons()
+        play_chime()
+        st.success(f"{level} learning completed. You can proceed to the game!")
 
-    bank = st.session_state.game["bank"]
-    idx = st.session_state.game["index"]
-
-    if st.session_state.game["finished"] or idx >= len(bank):
-        total = len(bank)
-        score = st.session_state.game["score"]
-        stars = min(score, 10)  # cap visual stars at 10 for the meter
-        st.subheader("🏁 Challenge Complete!")
-        st.write(f"**Score:** {score} / {total}")
-        st.write(f"**Stars:** {star_bar(stars)}")
-        st.success(badge_for_score(score, total))
-
-        # AI summary
-        summary_prompt = (
-            f"The learner completed a phishing awareness challenge with score {score}/{total}. "
-            "Give 3 short, practical tips tailored to common mistakes people make with phishing. "
-            "Keep it encouraging and easy to understand."
-        )
-        st.info(ai_summary_feedback(summary_prompt))
-
-        # Save results
-        save_game_result(st.session_state.user_email or "guest@demo", score, total, mode="game")
-
-        if st.button("Play Again", use_container_width=True):
-            reset_game()
-            st.experimental_rerun()
+def page_game(level):
+    st.header(f"🎮 Phish or Safe — {level}")
+    if not st.session_state.learn_done[level]:
+        st.warning("Complete the Learn section first to unlock the game.")
         return
 
-    # Progress header
+    if not st.session_state.game["bank"]:
+        reset_game(level)
+
+    bank = st.session_state.game["bank"]
+    idx  = st.session_state.game["index"]
+
+    if idx >= len(bank):
+        st.session_state.game["finished"] = True
+
+    if st.session_state.game["finished"]:
+        total = len(bank)
+        score = st.session_state.game["score"]
+        stars = min(score, 10)
+        st.subheader("🏁 Section Complete!")
+        st.write(f"**Score:** {score} / {total}")
+        st.markdown(f"<div class='starline'>{star_bar(stars)}</div>", unsafe_allow_html=True)
+        final_badge = badge_for(score, total)
+        st.markdown(f"<span class='badge'>{final_badge}</span>", unsafe_allow_html=True)
+        st.balloons(); play_chime()
+
+        # AI summary tailored to performance
+        summary_prompt = (
+            f"User finished a phishing training ({level}) with score {score}/{total}. "
+            "Give 3 short, encouraging improvement tips aligned with common phishing red flags "
+            "(sender address, link hovering, attachments, urgency)."
+        )
+        st.info(ai_summary(summary_prompt))
+        save_result(st.session_state.user_email, score, total, level, mode="game")
+
+        col1, col2 = st.columns(2)
+        if col1.button("🔁 Play Again", use_container_width=True):
+            reset_game(level); st.experimental_rerun()
+        if col2.button("➡️ Next Section", use_container_width=True):
+            # handy hint: after Basic, suggest Advanced; after Advanced, suggest Results
+            if level == "Basic":
+                st.session_state.level = "Advanced"
+                # clear learn gate for advanced so they go learn first
+                st.experimental_rerun()
+            else:
+                st.experimental_rerun()
+        return
+
+    # HUD
     st.write(f"**Question {idx+1} of {len(bank)}**")
+    st.markdown(f"<div class='starline'>{star_bar(min(st.session_state.game['stars'],10))}</div>", unsafe_allow_html=True)
+
     item = bank[idx]
 
     if item["type"] == "email":
         st.subheader(f"📧 Subject: {item['subject']}")
         st.write(item["body"])
-
+        try:
+            picked = st.radio("Your choice:", ["Phishing", "Safe"], index=None, key=f"pick_{idx}")
+        except TypeError:
+            # older Streamlit fallback (preselect nothing not supported): default to first
+            picked = st.radio("Your choice:", ["Phishing", "Safe"], key=f"pick_{idx}")
         col1, col2 = st.columns(2)
-        picked = st.radio("Your choice:", ["Phishing", "Safe"], index=0, key=f"pick_{idx}")
         if col1.button("✅ Submit", use_container_width=True):
             correct = item["answer"]
             if picked == correct:
@@ -305,20 +344,19 @@ def page_game():
             st.session_state.game["index"] += 1
             st.experimental_rerun()
         if col2.button("⏭️ Skip", use_container_width=True):
-            st.session_state.game["index"] += 1
-            st.experimental_rerun()
+            st.session_state.game["index"] += 1; st.experimental_rerun()
 
     elif item["type"] == "quiz":
         st.subheader(f"🧠 {item['question']}")
         opts = item.get("options", [])
-        ans = item.get("answer")
+        ans  = item.get("answer")
         if not opts or not ans:
-            st.warning("This quiz item is incomplete.")
-            st.session_state.game["index"] += 1
-            st.experimental_rerun()
-            return
-
-        choice = st.radio("Select one:", opts, key=f"quiz_{idx}")
+            st.warning("This quiz item is incomplete; skipping.")
+            st.session_state.game["index"] += 1; st.experimental_rerun(); return
+        try:
+            choice = st.radio("Select one:", opts, index=None, key=f"quiz_{idx}")
+        except TypeError:
+            choice = st.radio("Select one:", opts, key=f"quiz_{idx}")
         col1, col2 = st.columns(2)
         if col1.button("✅ Submit", use_container_width=True):
             if choice == ans:
@@ -327,93 +365,69 @@ def page_game():
                 st.session_state.game["stars"] += 1
             else:
                 st.error(f"Oops! Correct answer: **{ans}**")
-            st.session_state.game["index"] += 1
-            st.experimental_rerun()
+            st.session_state.game["index"] += 1; st.experimental_rerun()
         if col2.button("⏭️ Skip", use_container_width=True):
-            st.session_state.game["index"] += 1
-            st.experimental_rerun()
-
-    # Live HUD
-    st.write("---")
-    st.metric("Score", st.session_state.game["score"])
-    st.write("Stars:", star_bar(min(st.session_state.game["stars"], 10)))
-    if st.session_state.user_email:
-        st.caption(f"Results will be saved for: {st.session_state.user_email}")
-    else:
-        st.caption("Playing as guest (results saved with 'guest@demo').")
+            st.session_state.game["index"] += 1; st.experimental_rerun()
 
 def page_results():
     st.header("📈 Your Results")
     who = st.session_state.user_email or "guest@demo"
     try:
-        # If you prefer per-user: .eq("email", who)
-        data = supabase.table("simulation_results").select("*").eq("email", who).order("created_at", desc=True).execute()
-        rows = data.data or []
+        q = supabase.table("simulation_results").select("*").eq("email", who).order("created_at", desc=True).execute()
+        rows = q.data or []
         if not rows:
-            st.info("No results yet. Play the game first!")
+            st.info("No results yet. Complete Learn + Game to see your progress here.")
             return
-        for r in rows[:10]:
-            when = r.get("created_at", "—")
-            st.write(f"• **{when}** — Score: **{r.get('score', '?')} / {r.get('total', '?')}** — Mode: {r.get('mode', 'game')}")
+        for r in rows[:12]:
+            when = r.get("created_at","—")
+            st.write(f"• **{when}** — {r.get('level','?')} — Score: **{r.get('score','?')}/{r.get('total','?')}**  ({r.get('mode','game')})")
     except Exception as e:
         st.error(f"Could not load results: {e}")
 
 def page_ai():
     st.header("🤖 Cybersecurity AI Assistant")
-    q = st.text_area("Ask about phishing, suspicious links, or staying safe online:")
+    q = st.text_area("Ask about phishing, suspicious links, or best practices:")
     if st.button("Ask AI", use_container_width=True):
         if not q.strip():
             st.warning("Type a question first.")
         else:
             with st.spinner("Thinking..."):
-                st.write(ai_summary_feedback("User question: " + q.strip()))
+                st.write(ai_summary("User question: " + q.strip()))
 
 def page_account():
     st.header("👤 Account")
     if st.session_state.user_email:
         st.success(f"Logged in as **{st.session_state.user_email}**")
         if st.button("Log out"):
-            try:
-                supabase.auth.sign_out()
-            except Exception:
-                pass
-            st.session_state.user_email = None
-            st.experimental_rerun()
+            try: supabase.auth.sign_out()
+            except Exception: pass
+            st.session_state.user_email = None; st.experimental_rerun()
     else:
-        tab1, tab2 = st.tabs(["Login", "Sign Up"])
-        with tab1:
-            login_box()
-        with tab2:
-            signup_box()
+        t1, t2 = st.tabs(["Login","Sign Up"])
+        with t1: login_ui()
+        with t2: signup_ui()
 
 # -----------------------------
-# SIDEBAR NAV
+# Sidebar
 # -----------------------------
 st.sidebar.title("🌐 Navigation")
+st.sidebar.selectbox("Difficulty level", ["Basic","Advanced"], key="level")
 if st.session_state.user_email:
     st.sidebar.caption(f"Signed in: {st.session_state.user_email}")
 else:
     st.sidebar.caption("Signed in: guest (results saved as guest@demo)")
 
-page = st.sidebar.radio(
-    "Go to:",
-    ["Home", "Learn", "Phish or Safe (Game)", "Results", "AI Assistant", "Account"],
-    index=["Home", "Learn", "Phish or Safe (Game)", "Results", "AI Assistant", "Account"].index(st.session_state.page)
-)
-st.session_state.page = page
+page = st.sidebar.radio("Go to:", ["Home","Learn","Phish or Safe (Game)","Results","AI Assistant","Account"])
+st.sidebar.divider()
+if st.sidebar.button("🔁 Reset Current Game"):
+    reset_game(st.session_state.level); st.experimental_rerun()
 
 # -----------------------------
-# RENDER
+# Router
 # -----------------------------
-if page == "Home":
-    page_home()
-elif page == "Learn":
-    page_learn()
-elif page == "Phish or Safe (Game)":
-    page_game()
-elif page == "Results":
-    page_results()
-elif page == "AI Assistant":
-    page_ai()
-elif page == "Account":
-    page_account()
+if page == "Home": page_home()
+elif page == "Learn": page_learn(st.session_state.level)
+elif page == "Phish or Safe (Game)": page_game(st.session_state.level)
+elif page == "Results": page_results()
+elif page == "AI Assistant": page_ai()
+elif page == "Account": page_account()
