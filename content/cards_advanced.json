@@ -1,22 +1,7 @@
 [
-  {
-    "title": "Spear Phishing",
-    "content": "Spear phishing targets specific individuals or organizations with personalized messages to increase success rates."
-  },
-  {
-    "title": "Clone Phishing",
-    "content": "Clone phishing replicates a legitimate email you've already received but replaces attachments or links with malicious versions."
-  },
-  {
-    "title": "Business Email Compromise (BEC)",
-    "content": "Attackers impersonate executives or vendors to trick employees into transferring funds or sensitive data."
-  },
-  {
-    "title": "Pharming & Domain Spoofing",
-    "content": "These methods redirect users to fake websites that look real, tricking them into entering login credentials."
-  },
-  {
-    "title": "Defensive Strategies",
-    "content": "Implement multi-factor authentication, monitor for domain lookalikes, and conduct phishing awareness training regularly."
-  }
+  {"title":"Spear Phishing","content":"Highly targeted scams using your job title, projects, or social media info to appear real."},
+  {"title":"Business Email Compromise (BEC)","content":"Impersonates executives or vendors to push urgent payments or data requests."},
+  {"title":"Domain & URL Tricks","content":"Lookalike domains (paypa1.com) and redirect links hide malicious sites."},
+  {"title":"Smishing & Vishing","content":"Phishing by SMS or phone; common with fake delivery notices and bank alerts."},
+  {"title":"Defense-in-Depth","content":"MFA, least privilege, email filters, and user training cut phishing risk drastically."}
 ]
