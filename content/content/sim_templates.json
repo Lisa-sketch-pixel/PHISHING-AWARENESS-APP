@@ -1,72 +1,12 @@
 [
-  {
-    "id": 1,
-    "level": "basic",
-    "subject": "[Bank Alert] Your Account Has Been Locked",
-    "body": "We detected suspicious activity on your account. Click the link below to verify your identity or your account will be permanently disabled in 24 hours:\nhttp://secure-online-banking-verify-id.com",
-    "is_phishing": true
-  },
-  {
-    "id": 2,
-    "level": "basic",
-    "subject": "Delivery Attempt Failed",
-    "body": "Hello! We attempted to deliver your package today but nobody was home. Please re-confirm your address details here to schedule redelivery:\nhttps://dhl-verify-delivery-info.com",
-    "is_phishing": true
-  },
-  {
-    "id": 3,
-    "level": "basic",
-    "subject": "Welcome to Our Security Newsletter",
-    "body": "Hi there! You’re receiving this official security tips newsletter because you opted in. This message is informational only — no links to click and no actions required.",
-    "is_phishing": false
-  },
-  {
-    "id": 4,
-    "level": "basic",
-    "subject": "Password Expiring Today",
-    "body": "Your company password expires in 1 hour. Reset it now:\nhttp://it-admin-security-reset.co\n\nFailure to reset will cause immediate account suspension.",
-    "is_phishing": true
-  },
-  {
-    "id": 5,
-    "level": "basic",
-    "subject": "Receipt for Your Purchase",
-    "body": "Thanks for your order! Attached is your official receipt. If you did not make this purchase, please contact support through the official website or app — do not reply to this email with sensitive info.",
-    "is_phishing": false
-  },
-  {
-    "id": 6,
-    "level": "advanced",
-    "subject": "Payroll Confirmation Needed Before 5PM",
-    "body": "Hi, this is HR. We're updating salaries for this cycle. Please log in and confirm your banking details immediately so we don’t delay your payment:\nhttps://internal-payroll-update.com/login",
-    "is_phishing": true
-  },
-  {
-    "id": 7,
-    "level": "advanced",
-    "subject": "Invoice #88213 Overdue",
-    "body": "Good afternoon,\n\nYour invoice #88213 is now 7 days overdue. Please use the secure link below to settle the balance:\nhttp://accounts-payable-clearing.com\n\nFailure to pay may result in service interruption.",
-    "is_phishing": true
-  },
-  {
-    "id": 8,
-    "level": "advanced",
-    "subject": "New Remote Work Policy Update",
-    "body": "Hi team,\n\nPlease review the attached PDF with updates to our remote work and flexible hours policy effective next month.\n\n– HR & Operations",
-    "is_phishing": false
-  },
-  {
-    "id": 9,
-    "level": "advanced",
-    "subject": "Urgent: Are You On-Site?",
-    "body": "Hey, are you available? I need you to buy 4 gift cards and send me the codes ASAP. I can't call right now, but this is confidential. Reply when done.\n\n– Your Manager",
-    "is_phishing": true
-  },
-  {
-    "id": 10,
-    "level": "advanced",
-    "subject": "University IT Notice: Mailbox Almost Full",
-    "body": "Your inbox storage is at 97%. Increase your quota here:\nhttp://student-it-helpdesk-mailupgrade.edu\n\nFailure to do so will result in loss of recent messages.",
-    "is_phishing": true
-  }
+  {"subject":"[Bank Alert] Your Account Has Been Locked","body":"We detected suspicious activity. Verify now: http://secure-online-banking-verify-id.com","is_phishing":true},
+  {"subject":"Delivery Attempt Failed","body":"We tried to deliver your package. Reschedule here: https://dhl-verify-delivery-info.com","is_phishing":true},
+  {"subject":"Welcome to Our Security Newsletter","body":"Official monthly security tips. No action required.","is_phishing":false},
+  {"subject":"Password Expiring Today","body":"Your password expires in 1 hour. Reset: http://it-admin-security-reset.co","is_phishing":true},
+  {"subject":"Receipt for Your Purchase","body":"Thanks for your order! Attached is your receipt. Contact support only via official site.","is_phishing":false},
+  {"subject":"Payroll Confirmation Needed Before 5PM","body":"Hi, this is HR. Please confirm your banking details: https://internal-payroll-update.com/login","is_phishing":true},
+  {"subject":"Invoice #88213 Overdue","body":"Your invoice is overdue. Pay via: http://accounts-payable-clearing.com","is_phishing":true},
+  {"subject":"New Remote Work Policy","body":"Please review the attached PDF with updated remote work policy.","is_phishing":false},
+  {"subject":"Urgent: Are You On-Site?","body":"Buy 4 gift cards and send me the codes ASAP. This is confidential.","is_phishing":true},
+  {"subject":"University IT Notice: Mailbox Almost Full","body":"Increase your quota here: http://student-it-helpdesk-mailupgrade.edu","is_phishing":true}
 ]
