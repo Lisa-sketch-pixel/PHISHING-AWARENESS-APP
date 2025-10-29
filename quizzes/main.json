@@ -1,177 +1,53 @@
 [
   {
-    "id": "q1",
-    "question": "If a message asks for your password, what should you do?",
-    "options": [
-      "Reply if the message looks professional",
-      "Share the password only if it’s your bank",
-      "Never share passwords by email or message",
-      "Forward it to friends to check"
-    ],
-    "answer": 2,
-    "topic": "passwords",
-    "explanation": "Legitimate services do not ask for passwords via email/SMS."
+    "question": "Which is the biggest phishing red flag?",
+    "options": ["Friendly tone", "Grammatical errors and urgent threats", "Being addressed by name", "Plain-text email"],
+    "answer": "Grammatical errors and urgent threats"
   },
   {
-    "id": "q2",
-    "question": "You see: “Your account will be closed in 1 hour—click to keep it active.” What tactic is this?",
-    "options": ["Reward", "Urgency & fear", "Curiosity", "Routine reminder"],
-    "answer": 1,
-    "topic": "urgency",
-    "explanation": "Scammers rush you so you act without thinking."
+    "question": "Best first step when you receive a suspicious email?",
+    "options": ["Click the link to check", "Reply and ask for proof", "Do nothing and ignore", "Verify via official website or app instead of the link"],
+    "answer": "Verify via official website or app instead of the link"
   },
   {
-    "id": "q3",
-    "question": "Best first step if a message looks suspicious?",
-    "options": [
-      "Click the link quickly to see",
-      "Delete it immediately without checking",
-      "Verify using the official app/website directly",
-      "Reply and ask for more details"
-    ],
-    "answer": 2,
-    "topic": "safe_actions",
-    "explanation": "Open a fresh browser/app and go to the official site yourself."
+    "question": "Legitimate companies will NOT ask for:",
+    "options": ["Billing address updates", "Marketing preferences", "Your password or 2FA codes", "Feedback surveys"],
+    "answer": "Your password or 2FA codes"
   },
   {
-    "id": "q4",
-    "question": "An email looks like it’s from HR, but the sender address ends with a different company’s domain. What’s the red flag?",
-    "options": [
-      "It uses your name",
-      "It’s friendly",
-      "Sender’s domain doesn’t match the real organization",
-      "It’s short"
-    ],
-    "answer": 2,
-    "topic": "sender_spoof",
-    "explanation": "Check the actual sender domain, not only the display name."
+    "question": "What is spear phishing?",
+    "options": ["Bulk random emails", "Personalized scams targeting specific people", "Malware via USB", "Phone call scams only"],
+    "answer": "Personalized scams targeting specific people"
   },
   {
-    "id": "q5",
-    "question": "Which file is riskiest to open from an unknown sender?",
-    "options": ["report.pdf", "invoice.xlsx", "holiday_photos.zip", "update.exe"],
-    "answer": 3,
-    "topic": "attachments",
-    "explanation": "Executable files (.exe) can install malware."
+    "question": "Safest way to check a link without clicking?",
+    "options": ["Right-click it", "Hover to preview the URL", "Copy and paste it in a new tab", "Ask a friend"],
+    "answer": "Hover to preview the URL"
   },
   {
-    "id": "q6",
-    "question": "You clicked a weird link by mistake. What should you do next?",
-    "options": [
-      "Nothing—hope it’s fine",
-      "Run a security scan and change important passwords",
-      "Send the link to friends",
-      "Click it again to check"
-    ],
-    "answer": 1,
-    "topic": "after_click",
-    "explanation": "Scan your device and change passwords, especially if you entered info."
+    "question": "What helps the most if a password is stolen?",
+    "options": ["Incognito mode", "VPN", "Multi-Factor Authentication (MFA)", "Dark theme"],
+    "answer": "Multi-Factor Authentication (MFA)"
   },
   {
-    "id": "q7",
-    "question": "Which message is MOST likely a scam?",
-    "options": [
-      "A shipping update you were expecting",
-      "A message from your bank via its secure in-app inbox",
-      "A random prize notification asking for a small “release fee”",
-      "A calendar reminder you created"
-    ],
-    "answer": 2,
-    "topic": "scam_signs",
-    "explanation": "Unexpected prizes + payments are classic scam patterns."
+    "question": "Which looks most suspicious?",
+    "options": ["it-support@company.com", "it.support@company.com", "itsupport@company.co", "it-support@companny.com"],
+    "answer": "it-support@companny.com"
   },
   {
-    "id": "q8",
-    "question": "A text (SMS) says: “Your package is pending. Confirm here.” This type of attack is called…",
-    "options": ["Vishing", "Smishing", "Doxing", "Pharming"],
-    "answer": 1,
-    "topic": "smishing",
-    "explanation": "Smishing = phishing via SMS/text messages."
+    "question": "What is Business Email Compromise (BEC)?",
+    "options": ["A company hacked by ransomware", "Impersonation of executives/vendors for payments", "Phishing by SMS", "Credential stuffing"],
+    "answer": "Impersonation of executives/vendors for payments"
   },
   {
-    "id": "q9",
-    "question": "A QR code in an email asks you to scan and log in. What’s the risk?",
-    "options": [
-      "QR codes are always safe",
-      "It might hide a malicious link to a fake login page",
-      "It guarantees discounts",
-      "It proves the email is official"
-    ],
-    "answer": 1,
-    "topic": "qr_phishing",
-    "explanation": "Attackers use QR codes to hide suspicious URLs (quishing)."
+    "question": "What should you do after clicking a bad link?",
+    "options": ["Nothing if nothing happened", "Change passwords and run a malware scan", "Delete the email only", "Forward it to everyone as a warning"],
+    "answer": "Change passwords and run a malware scan"
   },
   {
-    "id": "q10",
-    "question": "Which action is safest when you’re unsure about an attachment?",
-    "options": [
-      "Open it to see what it is",
-      "Upload it to social media to ask",
-      "Ask the sender through a different channel before opening",
-      "Forward it to colleagues"
-    ],
-    "answer": 2,
-    "topic": "attachments",
-    "explanation": "Verify with the sender using a separate trusted channel."
-  },
-  {
-    "id": "q11",
-    "question": "An email says it’s from a well-known brand but the sender domain is slightly misspelled (e.g., amaz0n.com). What is this?",
-    "options": ["Perfect spoof", "Homoglyph/look-alike domain", "Watering hole", "Benign typo"],
-    "answer": 1,
-    "topic": "lookalike_domains",
-    "explanation": "Look-alike domains use similar characters to trick you."
-  },
-  {
-    "id": "q12",
-    "question": "You receive an “unsubscribe” link in a suspicious email. What’s the safest approach?",
-    "options": [
-      "Click it to stop future emails",
-      "Reply STOP",
-      "Use the service’s official site/app to manage settings or mark as spam",
-      "Forward the email to friends first"
-    ],
-    "answer": 2,
-    "topic": "safe_actions",
-    "explanation": "Fake unsubscribe links can confirm your address or deliver malware."
-  },
-  {
-    "id": "q13",
-    "question": "Which situation is MOST trustworthy?",
-    "options": [
-      "A friend suddenly asks for money via a new account",
-      "A message with a link you didn’t expect",
-      "A login request inside the official bank app you opened yourself",
-      "A “security alert” from an unknown email"
-    ],
-    "answer": 2,
-    "topic": "context_trust",
-    "explanation": "Initiate actions yourself via official apps/sites."
-  },
-  {
-    "id": "q14",
-    "question": "A message says you’ve won a giveaway you never entered. What should you do?",
-    "options": [
-      "Pay the fee to release the prize",
-      "Share personal info to claim",
-      "Ignore/delete it or report as spam",
-      "Click the link to confirm"
-    ],
-    "answer": 2,
-    "topic": "scam_signs",
-    "explanation": "Unexpected winnings = common scam bait. Don’t engage."
-  },
-  {
-    "id": "q15",
-    "question": "Which is the BEST general habit to avoid phishing?",
-    "options": [
-      "Click links only on weekdays",
-      "Use strong passwords and 2-factor authentication; verify messages via official channels",
-      "Only trust messages with logos",
-      "Share codes if the sender insists"
-    ],
-    "answer": 1,
-    "topic": "best_practices",
-    "explanation": "Strong auth + independent verification are your best defense."
+    "question": "A safe password practice is:",
+    "options": ["Reuse across accounts", "Write it on a sticky note", "Use a password manager", "Share with your partner"],
+    "answer": "Use a password manager"
   }
 ]
+
