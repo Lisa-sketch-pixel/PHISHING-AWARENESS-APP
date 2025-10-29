@@ -1,22 +1,7 @@
 [
-  {
-    "title": "What is Phishing?",
-    "content": "Phishing is a type of cyberattack where attackers trick users into revealing sensitive information like passwords or credit card details by pretending to be legitimate organizations."
-  },
-  {
-    "title": "Urgency & Pressure",
-    "content": "Attackers create a sense of urgency, such as warning about account suspension, to rush victims into making mistakes."
-  },
-  {
-    "title": "Passwords & Personal Info",
-    "content": "Never share your passwords or personal details via email. Legitimate companies never ask for this information."
-  },
-  {
-    "title": "Attachments & Downloads",
-    "content": "Avoid downloading unexpected attachments or clicking random links. Always verify the sender first."
-  },
-  {
-    "title": "What To Do If You Clicked",
-    "content": "If you accidentally click a phishing link, disconnect from the internet and report the incident immediately to your IT team or service provider."
-  }
+  {"title":"What is Phishing?","content":"Phishing is when attackers pretend to be trusted contacts to steal passwords, money, or data."},
+  {"title":"Urgency & Pressure","content":"Messages that say 'act now or lose access' try to make you rush without thinking."},
+  {"title":"Links & Attachments","content":"Avoid clicking unknown links or opening unexpected attachments. Verify first."},
+  {"title":"Sender Check","content":"Inspect the sender’s address carefully — tiny misspellings are common tricks."},
+  {"title":"If You Clicked","content":"Change your password and run a malware scan. Enable MFA to reduce damage."}
 ]
