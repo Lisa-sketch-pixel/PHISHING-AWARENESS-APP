@@ -1,7 +1,7 @@
 [
-  {"title":"Spear Phishing","content":"Highly targeted scams using your job title, projects, or social media info to appear real."},
-  {"title":"Business Email Compromise (BEC)","content":"Impersonates executives or vendors to push urgent payments or data requests."},
-  {"title":"Domain & URL Tricks","content":"Lookalike domains (paypa1.com) and redirect links hide malicious sites."},
-  {"title":"Smishing & Vishing","content":"Phishing by SMS or phone; common with fake delivery notices and bank alerts."},
-  {"title":"Defense-in-Depth","content":"MFA, least privilege, email filters, and user training cut phishing risk drastically."}
+  {"title":"Spear Phishing","content":"Personalized scams using your role, projects, or social media info to appear legitimate."},
+  {"title":"Business Email Compromise (BEC)","content":"Exec/vendor impersonation requesting urgent wire transfers or sensitive data."},
+  {"title":"Credential Harvesting","content":"Fake login portals mimic brands. Always navigate directly to the official site/app."},
+  {"title":"Malicious Attachments","content":"Macro-enabled docs, HTML attachments, or links to drive-by downloads can infect devices."},
+  {"title":"Defense-in-Depth","content":"Use MFA, least privilege, patching, email filtering, and continuous user awareness."}
 ]
