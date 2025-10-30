@@ -3,7 +3,7 @@
 # Streamlit + Supabase + (Optional) OpenAI
 # ================================
 
-import os, json, random, base64
+import os, json, random, base64, time
 from datetime import datetime
 import streamlit as st
 from supabase import create_client, Client
@@ -58,7 +58,6 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # -----------------------------
 # Tiny celebration sound (base64)
 # -----------------------------
-# a short 'ping' tone (22050Hz mono wav) base64-encoded
 PING_WAV = (
     "UklGRrQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQwAAAABAQEBAgICAwMDAwQE"
     "BAUFBQYGBgcHBwgICAkJCgoKCwsMDQ0ODw8QEBA="
@@ -96,7 +95,6 @@ def save_result(email, score, total, level, mode):
         st.warning(f"Could not save results (RLS/policy?): {e}")
 
 def ai_summary(text: str) -> str:
-    # Try new SDK
     try:
         from openai import OpenAI
         client = OpenAI(api_key=OPENAI_KEY)
@@ -110,22 +108,6 @@ def ai_summary(text: str) -> str:
         )
         return r.choices[0].message.content.strip()
     except Exception:
-        pass
-    # Try legacy SDK
-    try:
-        import openai
-        openai.api_key = OPENAI_KEY
-        r = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role":"system","content":"You are a friendly cybersecurity coach. Be concise and practical."},
-                {"role":"user","content": text}
-            ],
-            max_tokens=220, temperature=0.7
-        )
-        return r["choices"][0]["message"]["content"].strip()
-    except Exception:
-        # Offline fallback
         tips = [
             "Great work! 👏 Watch for urgency, odd sender domains, and unexpected attachments.",
             "Tip: Hover links to preview URLs. Real services don’t ask for passwords or codes by email.",
@@ -147,7 +129,7 @@ def star_bar(n):  # visual cap at 10
 # Session State
 # -----------------------------
 if "user_email" not in st.session_state: st.session_state.user_email = None
-if "level" not in st.session_state:      st.session_state.level = "Basic"  # Basic | Advanced
+if "level" not in st.session_state:      st.session_state.level = "Basic"
 if "learn_done" not in st.session_state: st.session_state.learn_done = {"Basic": False, "Advanced": False}
 if "game" not in st.session_state:
     st.session_state.game = {"bank": [], "index": 0, "score": 0, "stars": 0, "finished": False}
@@ -179,7 +161,7 @@ def signup_ui():
             st.error(f"Sign-up failed: {e}")
 
 # -----------------------------
-# Content builders (aligned)
+# Content builders
 # -----------------------------
 def load_lessons(level):
     if level == "Basic":
@@ -199,15 +181,12 @@ def load_lessons(level):
 
 def build_bank_for_level(level):
     bank = []
-    # Email simulations (preferred) with level flag
     emails = load_json("content/simulation.json")
     if not emails:
         emails = load_json("content/sim_templates.json")
     for i, em in enumerate(emails):
-        # If your JSON contains "level": "basic"/"advanced", we’ll filter; else split by index
         em_level = (em.get("level") or "basic").lower()
         want_lvl = level.lower()
-        # heuristic: if file has no explicit levels, split first half basic, rest advanced
         if "level" not in em and want_lvl == "basic" and i >= len(emails)//2: 
             continue
         if "level" not in em and want_lvl == "advanced" and i < len(emails)//2:
@@ -219,14 +198,12 @@ def build_bank_for_level(level):
         is_phish = bool(em.get("is_phishing") or (em.get("label") == "Phishing"))
         bank.append({"type":"email","subject":subj,"body":body,"answer":"Phishing" if is_phish else "Safe"})
 
-    # MCQ quiz (optionally with level in JSON; else same heuristic)
     quiz = load_json("quizzes/main.json")
     for j, q in enumerate(quiz):
         q_level = (q.get("level") or "basic").lower()
         if "level" in q and q_level != level.lower(): 
             continue
         if "level" not in q:
-            # split by index if not provided
             half = len(quiz)//2
             if level == "Basic" and j >= half: 
                 continue
@@ -238,7 +215,6 @@ def build_bank_for_level(level):
             "options": q.get("options", []),
             "answer": q.get("answer")
         })
-
     random.shuffle(bank)
     return bank
 
@@ -246,12 +222,11 @@ def reset_game(level):
     st.session_state.game = {"bank": build_bank_for_level(level), "index": 0, "score": 0, "stars": 0, "finished": False}
 
 # -----------------------------
-# Pages
+# PAGES
 # -----------------------------
 def page_home():
     st.title("🛡️ Phish or Safe: The Cyber Challenge")
     st.caption("Learn → Play → Earn badges. Train your eye to spot phishing like a pro.")
-    st.write("Use the sidebar to choose **level**, start with **Learn**, then play the **Game**, and view your **Results**.")
     if st.session_state.user_email:
         st.success(f"Signed in as {st.session_state.user_email}")
     else:
@@ -270,6 +245,9 @@ def page_learn(level):
         play_chime()
         st.success(f"{level} learning completed. You can proceed to the game!")
 
+# -----------------------------
+# 🎮 GAME SECTION (fixed)
+# -----------------------------
 def page_game(level):
     st.header(f"🎮 Phish or Safe — {level}")
     if not st.session_state.learn_done[level]:
@@ -280,7 +258,7 @@ def page_game(level):
         reset_game(level)
 
     bank = st.session_state.game["bank"]
-    idx  = st.session_state.game["index"]
+    idx = st.session_state.game["index"]
 
     if idx >= len(bank):
         st.session_state.game["finished"] = True
@@ -294,9 +272,9 @@ def page_game(level):
         st.markdown(f"<div class='starline'>{star_bar(stars)}</div>", unsafe_allow_html=True)
         final_badge = badge_for(score, total)
         st.markdown(f"<span class='badge'>{final_badge}</span>", unsafe_allow_html=True)
-        st.balloons(); play_chime()
+        st.balloons()
+        play_chime()
 
-        # AI summary tailored to performance
         summary_prompt = (
             f"User finished a phishing training ({level}) with score {score}/{total}. "
             "Give 3 short, encouraging improvement tips aligned with common phishing red flags "
@@ -307,21 +285,16 @@ def page_game(level):
 
         col1, col2 = st.columns(2)
         if col1.button("🔁 Play Again", use_container_width=True):
-            reset_game(level); st.experimental_rerun()
+            reset_game(level)
+            st.rerun()
         if col2.button("➡️ Next Section", use_container_width=True):
-            # handy hint: after Basic, suggest Advanced; after Advanced, suggest Results
             if level == "Basic":
                 st.session_state.level = "Advanced"
-                # clear learn gate for advanced so they go learn first
-                st.experimental_rerun()
-            else:
-                st.experimental_rerun()
+            st.rerun()
         return
 
-    # HUD
     st.write(f"**Question {idx+1} of {len(bank)}**")
     st.markdown(f"<div class='starline'>{star_bar(min(st.session_state.game['stars'],10))}</div>", unsafe_allow_html=True)
-
     item = bank[idx]
 
     if item["type"] == "email":
@@ -330,8 +303,8 @@ def page_game(level):
         try:
             picked = st.radio("Your choice:", ["Phishing", "Safe"], index=None, key=f"pick_{idx}")
         except TypeError:
-            # older Streamlit fallback (preselect nothing not supported): default to first
             picked = st.radio("Your choice:", ["Phishing", "Safe"], key=f"pick_{idx}")
+
         col1, col2 = st.columns(2)
         if col1.button("✅ Submit", use_container_width=True):
             correct = item["answer"]
@@ -343,20 +316,26 @@ def page_game(level):
                 st.error(f"Not quite. It was **{correct}**.")
             st.session_state.game["index"] += 1
             st.rerun()
-         if col2.button("⏭️ Skip", use_container_width=True):
-            st.session_state.game["index"] += 1; st.experimental_rerun()
+
+        if col2.button("⏭️ Skip", use_container_width=True):
+            st.session_state.game["index"] += 1
+            st.rerun()
 
     elif item["type"] == "quiz":
         st.subheader(f"🧠 {item['question']}")
         opts = item.get("options", [])
-        ans  = item.get("answer")
+        ans = item.get("answer")
         if not opts or not ans:
             st.warning("This quiz item is incomplete; skipping.")
-            st.session_state.game["index"] += 1; st.experimental_rerun(); return
+            st.session_state.game["index"] += 1
+            st.rerun()
+            return
+
         try:
             choice = st.radio("Select one:", opts, index=None, key=f"quiz_{idx}")
         except TypeError:
             choice = st.radio("Select one:", opts, key=f"quiz_{idx}")
+
         col1, col2 = st.columns(2)
         if col1.button("✅ Submit", use_container_width=True):
             if choice == ans:
@@ -365,10 +344,16 @@ def page_game(level):
                 st.session_state.game["stars"] += 1
             else:
                 st.error(f"Oops! Correct answer: **{ans}**")
-            st.session_state.game["index"] += 1; st.experimental_rerun()
-        if col2.button("⏭️ Skip", use_container_width=True):
-            st.session_state.game["index"] += 1; st.experimental_rerun()
+            st.session_state.game["index"] += 1
+            st.rerun()
 
+        if col2.button("⏭️ Skip", use_container_width=True):
+            st.session_state.game["index"] += 1
+            st.rerun()
+
+# -----------------------------
+# Other pages
+# -----------------------------
 def page_results():
     st.header("📈 Your Results")
     who = st.session_state.user_email or "guest@demo"
@@ -401,14 +386,15 @@ def page_account():
         if st.button("Log out"):
             try: supabase.auth.sign_out()
             except Exception: pass
-            st.session_state.user_email = None; st.experimental_rerun()
+            st.session_state.user_email = None
+            st.rerun()
     else:
         t1, t2 = st.tabs(["Login","Sign Up"])
         with t1: login_ui()
         with t2: signup_ui()
 
 # -----------------------------
-# Sidebar
+# Sidebar Navigation
 # -----------------------------
 st.sidebar.title("🌐 Navigation")
 st.sidebar.selectbox("Difficulty level", ["Basic","Advanced"], key="level")
@@ -420,7 +406,8 @@ else:
 page = st.sidebar.radio("Go to:", ["Home","Learn","Phish or Safe (Game)","Results","AI Assistant","Account"])
 st.sidebar.divider()
 if st.sidebar.button("🔁 Reset Current Game"):
-    reset_game(st.session_state.level); st.experimental_rerun()
+    reset_game(st.session_state.level)
+    st.rerun()
 
 # -----------------------------
 # Router
