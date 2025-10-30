@@ -1,7 +1,26 @@
 [
-  {"title":"Spear Phishing","content":"Personalized scams using your role, projects, or social media info to appear legitimate."},
-  {"title":"Business Email Compromise (BEC)","content":"Exec/vendor impersonation requesting urgent wire transfers or sensitive data."},
-  {"title":"Credential Harvesting","content":"Fake login portals mimic brands. Always navigate directly to the official site/app."},
-  {"title":"Malicious Attachments","content":"Macro-enabled docs, HTML attachments, or links to drive-by downloads can infect devices."},
-  {"title":"Defense-in-Depth","content":"Use MFA, least privilege, patching, email filtering, and continuous user awareness."}
+  {
+    "title": "Spear Phishing",
+    "content": "Unlike regular phishing, spear phishing targets specific individuals using personal info — like your role, projects, or coworkers. Example: 'Hey Lisa, can you review this finance report before the meeting?' It looks personal but contains a malicious link."
+  },
+  {
+    "title": "Business Email Compromise (BEC)",
+    "content": "Attackers impersonate a company executive or vendor to request urgent wire transfers or data. Example: An email from 'CEO@company.co' asking finance to send $10,000 immediately — but it’s a fake domain (CEO@company.co vs CEO@company.com)."
+  },
+  {
+    "title": "Credential Harvesting",
+    "content": "Fake login pages mimic real sites like Google or Office 365 to steal your credentials. Always double-check the domain (google.com vs g00gle-login.net). Enable MFA to block login attempts even if your password leaks."
+  },
+  {
+    "title": "Malicious Attachments",
+    "content": "Office files or PDFs can carry hidden code (macros) that install malware. Example: 'Updated project.xlsx' sent by 'HR@company-career.net'. Always verify attachments before opening, even if they look professional."
+  },
+  {
+    "title": "Social Engineering Tricks",
+    "content": "Phishers exploit emotions — urgency, fear, or curiosity. Example: 'You’ve won a gift card!' or 'Your account will be closed today!' The goal is to make you click fast without thinking."
+  },
+  {
+    "title": "Defense-in-Depth",
+    "content": "Combine multiple defenses: MFA, password managers, employee training, patching, and email filtering. Cybersecurity isn’t one tool — it’s a habit. Stay alert and question anything that feels 'off'."
+  }
 ]
