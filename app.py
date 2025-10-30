@@ -342,8 +342,8 @@ def page_game(level):
             else:
                 st.error(f"Not quite. It was **{correct}**.")
             st.session_state.game["index"] += 1
-            st.experimental_rerun()
-        if col2.button("⏭️ Skip", use_container_width=True):
+            st.rerun()
+         if col2.button("⏭️ Skip", use_container_width=True):
             st.session_state.game["index"] += 1; st.experimental_rerun()
 
     elif item["type"] == "quiz":
