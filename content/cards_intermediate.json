@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Look-Alike Domains & Spoofed Senders",
+    "content": "Attackers may register domains that look almost correct, such as paypa1.com. They can also fake the display name of a sender, like 'IT Support', while the real address is from another domain. Always check the part after the @ symbol."
+  },
+  {
+    "title": "Fake HR & Payroll Messages",
+    "content": "Phishing emails often pretend to be from HR or Payroll. They may ask you to confirm bank details, update personal information, or open attachments. Real HR systems typically use secure portals instead of email requests."
+  },
+  {
+    "title": "Malicious Attachments in Professional Emails",
+    "content": "Intermediate phishing messages often look professional and well-written but hide dangerous attachments such as .html, .zip, or .exe files. These can infect your device with malware. Always verify before opening files."
+  },
+  {
+    "title": "Multi-Step & Multi-Channel Phishing",
+    "content": "Attackers may combine email, SMS, and phone calls. For example, an email warns about a login attempt, an SMS sends an OTP, and a caller asks for the OTP. Legitimate services never ask for your OTP or password."
+  },
+  {
+    "title": "Security Hygiene: Verify Before You Act",
+    "content": "Never trust unexpected requests. Instead of clicking links from email, open the official website or app. Use verified communication channels to confirm unusual messages."
+  }
+]
