@@ -1,0 +1,18 @@
+[
+  {
+    "title": "What is Phishing?",
+    "content": "Phishing is a type of social engineering attack where an attacker sends a fake email, SMS, or message pretending to be a trusted organization. The goal is to steal passwords, bank accounts, or personal information, or to trick you into clicking malicious links or downloading harmful files."
+  },
+  {
+    "title": "Common Signs of Phishing",
+    "content": "Phishing messages often use urgent language, threats, poor grammar, unexpected attachments, or strange links. The sender address may also not match the real company domain. These clues help you detect suspicious messages."
+  },
+  {
+    "title": "Links & Fake Websites",
+    "content": "Attackers disguise fake websites to look legitimate. Always hover over links to preview the real URL and watch for look-alike domains such as paypa1.com. When in doubt, open the official website yourself."
+  },
+  {
+    "title": "Attachments & Information Requests",
+    "content": "Phishing emails may contain dangerous attachments or ask for sensitive information like passwords, OTPs, or banking details. Legitimate companies will never ask for these in email or SMS."
+  }
+]
