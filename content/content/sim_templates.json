@@ -1,167 +1,114 @@
 [
   {
+    "level": "beginner",
+    "channel": "email",
+    "from": "Bank Security <support@secure-banking-alert.com>",
     "subject": "Your account has been locked. Immediate action required.",
-    "body": "Dear customer,\n\nWe have noticed suspicious activity on your banking account. "
-            "To restore full access, please verify your details using the link below:\n\n"
-            "http://secure-bank-verify-login.com/update\n\n"
-            "If you do not act within 24 hours, your account will be permanently suspended.\n\n"
-            "Bank Security Team",
-    "is_phishing": true,
-    "level": "basic"
+    "message": "Dear customer,\n\nWe noticed suspicious activity on your bank account. "
+               "To restore full access, please verify your details using the link below:\n\n"
+               "https://secure-banking-verify.com/login\n\n"
+               "If you do not act within 24 hours, your account will be permanently suspended.\n\n"
+               "Bank Security Team",
+    "is_phishing": true
   },
   {
-    "subject": "Password change confirmation",
-    "body": "Hello,\n\nThis is a confirmation that your password was changed successfully. "
-            "If this was NOT you, please open the official banking app or website and reset "
-            "your password from there. Do not click links from unexpected emails.\n\n"
-            "Thank you,\nYour Bank",
-    "is_phishing": false,
-    "level": "basic"
+    "level": "beginner",
+    "channel": "sms",
+    "from": "+260 97 000 0000",
+    "message": "ZAM PAY: Your account will be closed today. Click here now to confirm your details: "
+               "http://zam-pay-verify.com",
+    "is_phishing": true
   },
   {
-    "subject": "You have won a new smartphone!",
-    "body": "Congratulations!\n\nYou have been randomly selected to win a brand new smartphone. "
-            "To claim your prize, simply click the link below and enter your full name, address, "
-            "ID number and bank card details:\n\n"
-            "http://free-giveaway-prize-claim.com\n\n"
-            "Offer expires in 30 minutes. Do not miss out!",
-    "is_phishing": true,
-    "level": "basic"
+    "level": "beginner",
+    "channel": "whatsapp",
+    "from": "Unknown number",
+    "message": "Hi, you won a free smartphone! 🎁 Reply with your full name, NRC and mobile money "
+               "number so we can send your prize.",
+    "is_phishing": true
   },
   {
-    "subject": "Security tip of the month",
-    "body": "Hi,\n\nThis is your monthly security tip newsletter. This month, we remind you to "
-            "never share your password or OTP with anyone. If you suspect a phishing email, report it "
-            "to your IT or security team.\n\n"
-            "Best regards,\nSecurity Awareness Team",
-    "is_phishing": false,
-    "level": "basic"
+    "level": "beginner",
+    "channel": "email",
+    "from": "Support <no-reply@musicstream.com>",
+    "subject": "Subscription renewal confirmation",
+    "message": "Hello,\n\nThis is a confirmation that your music streaming subscription will renew "
+               "next week. No action is required. If you want to manage your subscription, open the "
+               "official app or website directly.\n\nThank you,\nMusicStream Support",
+    "is_phishing": false
   },
+
   {
-    "subject": "Unusual login attempt detected",
-    "body": "Hello,\n\nWe detected an unusual login attempt on your email account from a new device. "
-            "If this was you, you can safely ignore this message. If not, please go to the official "
-            "webmail website by typing the address into your browser and change your password.\n\n"
-            "IT Security",
-    "is_phishing": false,
-    "level": "basic"
-  },
-  {
-    "subject": "Your OTP code: DO NOT SHARE",
-    "body": "Your one-time password (OTP) is: 492817\n\nIf you did not request this code, someone may "
-            "be trying to access your account. Do NOT share this code with anyone by email, SMS or phone.\n\n"
-            "Account Security",
-    "is_phishing": false,
-    "level": "basic"
-  },
-  {
-    "subject": "Important: Verify your employee portal access",
-    "body": "Dear employee,\n\nWe have introduced a new security layer for the employee portal. "
-            "To avoid losing access, please confirm your login details at the link below:\n\n"
-            "http://employee-portal-secure-login.com/verify\n\n"
-            "Failure to act today will result in a temporary suspension of your account.\n\n"
-            "IT Support",
-    "is_phishing": true,
-    "level": "intermediate"
-  },
-  {
-    "subject": "Reminder: Submit your timesheet",
-    "body": "Hello,\n\nThis is a reminder to submit your timesheet in the official HR portal "
-            "before Friday 17:00. Log in using the same internal link or bookmark you always use.\n\n"
-            "Best regards,\nHR Team",
-    "is_phishing": false,
-    "level": "intermediate"
-  },
-  {
+    "level": "intermediate",
+    "channel": "email",
+    "from": "HR Department <hr@company-payroll-update.com>",
     "subject": "Urgent: Salary payment verification required",
-    "body": "Hi,\n\nDue to a system upgrade, we need to confirm your bank account details so that "
-            "your salary is not delayed. Please reply to this email with your full name, bank name, "
-            "account number and branch code.\n\nThank you,\nPayroll Department",
-    "is_phishing": true,
-    "level": "intermediate"
+    "message": "Hi,\n\nDue to a system upgrade, we need to confirm your salary payment details so that "
+               "your next payment is not delayed. Please reply with your full name, bank name, account "
+               "number and branch code.\n\nRegards,\nHR & Payroll",
+    "is_phishing": true
   },
   {
-    "subject": "Meeting follow-up: Project notes attached",
-    "body": "Hi team,\n\nAttached are the meeting notes from today's project call. The file is a "
-            "standard PDF summarising tasks and decisions. No urgent action is required; this is "
-            "only for your reference.\n\n"
-            "Regards,\nProject Coordinator",
-    "is_phishing": false,
-    "level": "intermediate"
+    "level": "intermediate",
+    "channel": "sms",
+    "from": "Your Bank",
+    "message": "We detected a new login to your account. If this was not you, DO NOT click any links. "
+               "Open the official banking app or website and change your password.",
+    "is_phishing": false
   },
   {
-    "subject": "Security Notice: Unusual login to your email account",
-    "body": "Hello,\n\nWe detected a login to your email account from a new location. If this was not "
-            "you, please review your account activity by logging into the official webmail portal. "
-            "Do not click on links from unexpected messages or share your password or OTP.\n\n"
-            "IT Security",
-    "is_phishing": false,
-    "level": "intermediate"
+    "level": "intermediate",
+    "channel": "whatsapp",
+    "from": "IT Support (Fake)",
+    "message": "Hello, this is IT Support. We are rolling out a new security app. Please download the "
+               "file from this link and install it now so we can protect your device.",
+    "is_phishing": true
   },
   {
-    "subject": "Action required: New VPN client installation",
-    "body": "Dear user,\n\nTo keep remote connections secure, we require all staff to install the "
-            "attached VPN client immediately. Open the attached file vpn_update.exe and follow the "
-            "instructions.\n\nIT Administration",
-    "is_phishing": true,
-    "level": "intermediate"
+    "level": "intermediate",
+    "channel": "email",
+    "from": "Project Coordinator <projects@company.com>",
+    "subject": "Meeting notes from today’s call",
+    "message": "Hi team,\n\nAttached are the meeting notes from today’s project call in PDF format. "
+               "No urgent action is required; this is only for your reference.\n\nBest,\nProject Coordinator",
+    "is_phishing": false
+  },
+
+  {
+    "level": "advanced",
+    "channel": "email",
+    "from": "CEO <ceo@company.com>",
+    "subject": "Confidential: urgent payment to new vendor",
+    "message": "Hi,\n\nI need you to process an urgent payment to a new vendor today. Do not call me, "
+               "as I am in back-to-back meetings. Use the new bank details in the attached invoice and "
+               "confirm once it is done.\n\nRegards,\nCEO",
+    "is_phishing": true
   },
   {
-    "subject": "Payment request from trusted vendor",
-    "body": "Hi,\n\nPlease find attached the updated invoice from our long-term vendor. Note that their "
-            "bank account details have changed due to an internal audit. Make sure all future payments "
-            "use the new bank account listed in the attached document.\n\n"
-            "Vendor Accounts Team",
-    "is_phishing": true,
-    "level": "advanced"
+    "level": "advanced",
+    "channel": "popup",
+    "subject": "⚠️ Your device is infected!",
+    "message": "WARNING: Your device is badly infected with 39 viruses! If you close this window you "
+               "will lose all your data. Call our Microsoft-certified support team now on +1-800-000-000 "
+               "or click 'Clean my PC' to install our security tool.",
+    "is_phishing": true
   },
   {
-    "subject": "Urgent: CEO request for confidential wire transfer",
-    "body": "Hello,\n\nI am currently in a meeting and cannot be disturbed. I need you to urgently "
-            "process a confidential wire transfer of funds to the following account for a sensitive "
-            "acquisition. Do not call me; just reply to this email when the transfer is complete.\n\n"
-            "This is highly confidential.\n\n"
-            "Regards,\nChief Executive Officer",
-    "is_phishing": true,
-    "level": "advanced"
+    "level": "advanced",
+    "channel": "email",
+    "from": "Security Team <security@company.com>",
+    "subject": "Security advisory: new phishing campaign",
+    "message": "Hi all,\n\nWe have detected a new phishing campaign targeting staff. Be cautious of any "
+               "messages asking you to approve urgent payments, change bank details, or share OTP codes. "
+               "Always verify requests using official channels.\n\nSecurity Team",
+    "is_phishing": false
   },
   {
-    "subject": "Security training: Phishing simulation results",
-    "body": "Hi,\n\nThank you for participating in our recent phishing simulation exercise. Your results "
-            "are now available in the official training portal. Please log in using your normal company "
-            "credentials. We will never ask you to enter your password on any site outside the corporate "
-            "domain.\n\n"
-            "Security Awareness Team",
-    "is_phishing": false,
-    "level": "advanced"
-  },
-  {
-    "subject": "Mailbox quota exceeded – action required",
-    "body": "Dear user,\n\nYour mailbox has exceeded the storage limit and some emails may not be "
-            "delivered. To restore full functionality, please log in to the web portal using the link "
-            "below and confirm your account details:\n\n"
-            "http://webmail-it-support-quota.com/login\n\n"
-            "Failure to act may result in permanent loss of messages.\n\n"
-            "Mail Administrator",
-    "is_phishing": true,
-    "level": "advanced"
-  },
-  {
-    "subject": "Invoice query: confirmation of bank details",
-    "body": "Hi Finance,\n\nWe noticed that the last invoice was paid to our old bank account. Please use "
-            "the updated account details in the attached PDF for all future payments. This change is "
-            "effective immediately and must be followed today.\n\n"
-            "Best regards,\nAccounts Department",
-    "is_phishing": true,
-    "level": "advanced"
-  },
-  {
-    "subject": "Internal security review meeting",
-    "body": "Hello team,\n\nYou are invited to an internal security review meeting next week to discuss "
-            "recent phishing attempts and how to handle them. The invite has also been sent via the "
-            "official calendar system. No attachments are included in this email.\n\n"
-            "Kind regards,\nInformation Security Office",
-    "is_phishing": false,
-    "level": "advanced"
+    "level": "advanced",
+    "channel": "whatsapp",
+    "from": "Trusted Contact (compromised)",
+    "message": "Hey, I changed my number. Can you quickly help me pay an urgent bill using your mobile "
+               "money? I will send the money back to you later today.",
+    "is_phishing": true
   }
 ]
