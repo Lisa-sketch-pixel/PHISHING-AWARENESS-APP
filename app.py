@@ -3,7 +3,7 @@
 # Streamlit + Supabase + (Optional) OpenAI
 # ================================
 
-import os, json, random, base64, time
+import os, json, random, base64
 from datetime import datetime
 import streamlit as st
 from supabase import create_client, Client
@@ -13,28 +13,22 @@ from supabase import create_client, Client
 # -----------------------------
 st.set_page_config(page_title="THAT'S PHISHY 🎣", page_icon="🎣", layout="wide")
 
-# Background gradient + subtle card glow
 st.markdown("""
 <style>
-/* page background */
 .stApp {
   background: radial-gradient(1200px 600px at 10% 10%, #1c1f38 0%, #0f1224 40%, #090b18 100%) !important;
 }
-/* headers glow */
 h1, h2, h3 { text-shadow: 0 0 10px rgba(120,100,255,.25); }
-/* cards and inputs */
 .block-container { padding-top: 2rem; }
 .stExpander, .stButton>button, .stRadio, .stSelectbox, .stTextInput, .stTabs [data-baseweb="tab"] {
   border-radius: 12px !important;
 }
-/* buttons */
 .stButton>button {
   background: linear-gradient(90deg,#6a5cff,#9a5fff);
   border: 0; color: white; font-weight: 600;
   box-shadow: 0 8px 20px rgba(120,100,255,.25);
 }
 .stButton>button:hover { filter: brightness(1.07); }
-/* metrics stars line */
 .starline { font-size:1.4rem; letter-spacing:1px }
 .badge {
   display:inline-block; padding:.35rem .7rem; border-radius:999px; font-weight:700;
@@ -44,7 +38,7 @@ h1, h2, h3 { text-shadow: 0 0 10px rgba(120,100,255,.25); }
 """, unsafe_allow_html=True)
 
 # -----------------------------
-# Defensive secrets loader
+# Secrets / Supabase
 # -----------------------------
 SUPABASE_URL = st.secrets.get("supabase", {}).get("url") or st.secrets.get("SUPABASE_URL")
 SUPABASE_KEY = st.secrets.get("supabase", {}).get("key") or st.secrets.get("SUPABASE_KEY")
@@ -57,7 +51,7 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # -----------------------------
-# Tiny celebration sound (base64)
+# Tiny celebration sound
 # -----------------------------
 PING_WAV = (
     "UklGRrQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQwAAAABAQEBAgICAwMDAwQE"
@@ -81,9 +75,7 @@ def load_json(path, default=None):
     try:
         with open(os.path.join(BASE_DIR, path), "r", encoding="utf-8") as f:
             return json.load(f)
-    except Exception as e:
-        # In production you might want to log this instead of warning
-        st.warning(f"⚠️ Missing or unreadable file: {path} — {e}")
+    except Exception:
         return default
 
 def save_result(email, score, total, level, mode):
@@ -96,8 +88,9 @@ def save_result(email, score, total, level, mode):
             "mode": mode,
             "created_at": datetime.utcnow().isoformat()
         }).execute()
-    except Exception as e:
-        st.warning(f"Could not save results (RLS/policy?): {e}")
+    except Exception:
+        # Silent fail for users; can be logged separately if needed
+        pass
 
 def ai_summary(text: str) -> str:
     try:
@@ -116,57 +109,66 @@ def ai_summary(text: str) -> str:
     except Exception:
         tips = [
             "Great work! 👏 Watch for urgency, odd sender domains, and unexpected attachments.",
-            "Tip: Hover links to preview URLs. Real services don’t ask for passwords or codes by email.",
-            "Enable MFA and use a password manager. When in doubt, verify via the official app/site."
+            "Tip: Hover links to preview URLs. Real services don’t ask for passwords or codes by email, SMS, or WhatsApp.",
+            "Enable MFA and use a password manager. When in doubt, verify using the official app or website."
         ]
         return random.choice(tips)
 
 def badge_for(score, total):
-    pct = (score / total * 100) if total else 0
-    if pct >= 80:
-        return "🥇 Gold Defender"
-    if pct >= 50:
-        return "🥈 Silver Scout"
+    pct = (score/total*100) if total else 0
+    if pct >= 80:  return "🥇 Gold Defender"
+    if pct >= 50:  return "🥈 Silver Scout"
     return "🥉 Bronze Trainee"
 
-def star_bar(n):  # visual cap at 10
+def star_bar(n):
     n = max(0, min(10, n))
-    return "⭐" * n + "☆" * (10 - n)
+    return "⭐"*n + "☆"*(10-n)
 
-def explain_email_scenario(item, picked):
+def explain_scenario(item, picked):
     """
-    Build a short, scenario-style explanation for an email.
-    Uses ai_summary() so it stays in simple English.
+    Build a short, scenario-style explanation for any channel.
     """
     correct_label = item["answer"]  # "Phishing" or "Safe"
     verdict_text = "phishing" if correct_label == "Phishing" else "safe"
     user_choice_text = "phishing" if picked == "Phishing" else "safe"
+    channel = item.get("channel", "email")
+
+    channel_desc = {
+        "email": "You received an email that may be fake.",
+        "sms": "You received an SMS/text message on your phone.",
+        "whatsapp": "You received a message on WhatsApp.",
+        "popup": "You saw a security or virus alert on your screen.",
+    }.get(channel, "You received a message that may be fake.")
+
+    subject = item.get("subject", "(no subject)")
+    sender  = item.get("sender", "(unknown sender)")
+    message = item.get("message", "")
 
     prompt = f"""
-You are a friendly cybersecurity coach. The learner just classified an email as {user_choice_text},
+You are a friendly cybersecurity coach. The learner classified a scenario as {user_choice_text},
 but the correct classification is {verdict_text}.
 
-Explain this situation as a short training scenario.
+Channel: {channel}
+Short description: {channel_desc}
+Sender: {sender}
+Subject/title: {subject}
+Message/content: {message}
 
-Email subject: {item.get('subject','(no subject)')}
-Email body: {item.get('body','(no body)')}
-
-In 3 short bullet points, explain in very simple English:
-- Why this email is actually {verdict_text}
-- What clues they should have noticed
+In very simple English, explain in 3 short bullet points:
+- Why this scenario is actually {verdict_text}
+- What clues they should notice (urgency, links, domains, sender, attachments, 'virus' popups, etc.)
 - What the user should do in this situation (for example: ignore, report, verify via official app/site)
 
-Avoid technical jargon. Write for complete beginners.
+Avoid jargon. Write for complete beginners, but keep it accurate.
 """
     return ai_summary(prompt)
 
 # -----------------------------
-# Session State
+# Session state
 # -----------------------------
 if "user_email" not in st.session_state:
     st.session_state.user_email = None
 
-# Three difficulty levels
 if "level" not in st.session_state:
     st.session_state.level = "Beginner"
 
@@ -188,7 +190,7 @@ if "game" not in st.session_state:
     }
 
 # -----------------------------
-# Auth (simple)
+# Auth
 # -----------------------------
 def login_ui():
     st.subheader("🔐 Log in")
@@ -200,7 +202,7 @@ def login_ui():
             st.session_state.user_email = res.user.email
             st.success(f"Welcome back, {res.user.email}!")
         except Exception as e:
-            st.error(f"Login failed: {e}")
+            st.error("Login failed. Please check your credentials or try again later.")
 
 def signup_ui():
     st.subheader("✨ Create account")
@@ -209,106 +211,81 @@ def signup_ui():
     if st.button("Sign Up", use_container_width=True):
         try:
             supabase.auth.sign_up({"email": email, "password": pwd})
-            st.success("Account created! Verify your email before logging in.")
-        except Exception as e:
-            st.error(f"Sign-up failed: {e}")
+            st.success("Account created! Please verify your email before logging in.")
+        except Exception:
+            st.error("Sign-up failed. Please try again with a different email or password.")
 
 # -----------------------------
 # Content builders
 # -----------------------------
 def load_lessons(level):
-    """
-    Beginner  -> very simple, intro concepts
-    Intermediate -> some experience
-    Advanced  -> deeper / targeted attacks
-    """
     if level == "Beginner":
         return load_json("content/cards_beginner.json", default=[
             {
                 "title": "What is Phishing?",
-                "content": "Phishing is a social engineering attack where an attacker sends a fake email, SMS, "
-                           "or message pretending to be a trusted organisation. The goal is to steal passwords, "
-                           "bank details, or personal information, or to trick the victim into installing malware."
+                "content": "Phishing is a social engineering attack where an attacker sends a fake email, SMS, or message pretending to be a trusted organisation. The goal is to steal passwords, banking details, or personal information, or to trick the victim into installing malware."
             },
             {
                 "title": "Common Phishing Clues",
-                "content": "Phishing messages often use urgent or threatening language, unexpected attachments, "
-                           "poor spelling, strange grammar, or sender addresses that do not match the real company."
+                "content": "Common signs include urgent or threatening language, poor spelling or strange grammar, unknown senders, unexpected attachments, and suspicious links that do not match the official website."
             },
             {
                 "title": "Links & Fake Websites",
-                "content": "Attackers hide fake websites behind links. Hover over links to see the real URL before "
-                           "clicking, and watch out for look-alike domains like paypa1.com instead of paypal.com."
+                "content": "Phishing often uses fake websites that look real. Always hover over links to see the real URL and be careful with look-alike domains like paypa1.com instead of paypal.com."
             },
             {
                 "title": "Attachments & Information Requests",
-                "content": "Unexpected attachments or messages asking for passwords, OTPs, PINs, or bank details "
-                           "are strong signs of phishing. Legitimate organisations do not request this by email."
+                "content": "Unexpected attachments (ZIP, EXE, HTML) and messages asking for passwords, OTPs, or banking details are high-risk. Legitimate services do not ask for these through email, SMS, or WhatsApp."
             }
         ])
     elif level == "Intermediate":
         return load_json("content/cards_intermediate.json", default=[
             {
                 "title": "Look-Alike Domains & Spoofed Senders",
-                "content": "Attackers often register domains that look almost correct, such as paypa1.com instead "
-                           "of paypal.com. They may also fake the display name, like 'IT Support', while the real "
-                           "email address is from a random domain. Always check the part after the @ symbol."
+                "content": "Attackers often register domains that look almost correct, such as paypa1.com instead of paypal.com, and fake display names like 'IT Support' or 'Your Bank'. Always check the real address after the @ symbol."
             },
             {
                 "title": "Fake HR & Payroll Messages",
-                "content": "Phishing emails often pretend to be from HR or Payroll and use salary, contracts, or "
-                           "benefits to get attention. They might ask you to 'confirm bank details' or 'avoid salary "
-                           "delays'. Real HR systems usually use official portals and already have your data."
+                "content": "Phishing emails often pretend to be from HR or Payroll and use salary, contracts, or benefits to grab attention. They may ask you to confirm bank details or fill in forms urgently. Real HR usually uses official portals."
             },
             {
-                "title": "Malicious Attachments in Realistic Emails",
-                "content": "Intermediate phishing attacks can look professional but hide dangerous attachments like "
-                           ".zip, .html, or .exe files. These can install malware or remote access tools. Verify "
-                           "unexpected files using another channel before opening them."
+                "title": "Malicious Attachments in Realistic Messages",
+                "content": "Intermediate phishing messages can look professional but hide dangerous attachments like .zip, .html, or .exe files. These can install malware or remote access tools on your device."
             },
             {
-                "title": "Multi-Step & Multi-Channel Phishing",
-                "content": "Attackers may combine email, SMS, and phone calls to make the story feel real. For "
-                           "example, an email warns about a login issue, an SMS sends a code, and a phone call asks "
-                           "you to share the code. Legitimate services never ask you to read out OTPs."
+                "title": "Multi-Channel Phishing",
+                "content": "Attackers may combine email, SMS, WhatsApp, and phone calls in one campaign. For example, an email warns you, an SMS sends a code, and a call asks for that code. Legitimate services do not ask you to read out OTPs."
             },
             {
-                "title": "Security Hygiene: Verify Before You Act",
-                "content": "A strong defence is to pause and verify. Instead of clicking links in messages, open the "
-                           "official app or type the official website address yourself. Use approved helpdesk or HR "
-                           "channels to confirm unusual requests."
+                "title": "Verify Before You Act",
+                "content": "The best defence is to pause and verify. Do not click links or open attachments from unexpected messages. Instead, open the official app or type the official website yourself, or contact support via known channels."
             }
         ])
-    else:  # Advanced
+    else:
         return load_json("content/cards_advanced.json", default=[
             {
                 "title": "Spear Phishing",
-                "content": "Spear phishing is highly targeted phishing aimed at specific people or roles. Attackers "
-                           "use information from LinkedIn, data breaches, or social media to craft personalised, "
-                           "believable messages."
+                "content": "Spear phishing is a highly targeted attack customised for a specific person or role, often using information from social media or breaches to make the message look legitimate."
             },
             {
                 "title": "Business Email Compromise (BEC)",
-                "content": "In BEC attacks, criminals impersonate executives, suppliers, or finance contacts to push "
-                           "urgent payments or changes to bank details. These messages often avoid links and focus "
-                           "on social pressure and urgency."
+                "content": "BEC attacks involve criminals taking over or spoofing a business email address to request urgent payments, change bank details, or approve fake invoices."
             },
             {
-                "title": "Credential Harvesting & Fake Portals",
-                "content": "Credential harvesting uses fake login pages to steal usernames and passwords. The page "
-                           "may look identical to the real site. Always open important sites by typing the URL "
-                           "yourself or using bookmarks, not email links."
+                "title": "Credential Harvesting & Fake Login Pages",
+                "content": "Advanced phishing uses fake login pages that look identical to real ones. Victims are tricked into entering usernames, passwords, and sometimes MFA codes on the attacker’s site."
             },
             {
-                "title": "Detection & Reporting",
-                "content": "At an advanced level, defence includes quickly reporting suspicious messages using 'Report "
-                           "phishing' features in email clients and following internal incident response procedures. "
-                           "Early reporting helps protect the whole organisation."
+                "title": "“Your Device Has a Virus” Popups",
+                "content": "Fake security popups claim your device is infected and push you to call a number or install 'cleaning' software. These are often scams used to gain remote access or make you pay for fake support."
+            },
+            {
+                "title": "Report, Escalate, and Learn",
+                "content": "For advanced users, it is important to report suspicious messages using official reporting tools, help improve filters, and share lessons with the rest of the team."
             }
         ])
 
 def build_bank_for_level(level):
-    # Map UI level to JSON level tags
     level_map = {
         "Beginner": "beginner",
         "Intermediate": "intermediate",
@@ -318,10 +295,10 @@ def build_bank_for_level(level):
 
     bank = []
 
-    # ----- EMAIL SCENARIOS -----
+    # ----- Mixed-channel scenarios -----
     emails = load_json("content/simulation.json")
     if not emails:
-        emails = load_json("content/sim_templates.json")
+        emails = []
 
     n_e = len(emails)
     if n_e:
@@ -331,13 +308,9 @@ def build_bank_for_level(level):
         em_level_raw = (em.get("level") or "").lower()
 
         if em_level_raw:
-            # Support tags like "beginner", "basic", "intermediate", "advanced"
             if want_lvl not in em_level_raw:
-                # compatibility: treat "basic" as beginner if used
-                if not (want_lvl == "beginner" and "basic" in em_level_raw):
-                    continue
+                continue
         else:
-            # No explicit level: split by index into 3 bands
             if n_e >= 3:
                 if level == "Beginner" and i >= third_e:
                     continue
@@ -345,20 +318,23 @@ def build_bank_for_level(level):
                     continue
                 elif level == "Advanced" and i < 2 * third_e:
                     continue
-            else:
-                pass
 
-        subj = em.get("subject", f"Email {i+1}")
-        body = em.get("body", "No content")
+        channel = em.get("channel", "email").lower()
+        subj    = em.get("subject", "")
+        sender  = em.get("from") or em.get("sender") or ""
+        message = em.get("message") or em.get("body") or ""
         is_phish = bool(em.get("is_phishing") or (em.get("label") == "Phishing"))
+
         bank.append({
-            "type": "email",
+            "type": "scenario",
+            "channel": channel,
             "subject": subj,
-            "body": body,
+            "sender": sender,
+            "message": message,
             "answer": "Phishing" if is_phish else "Safe"
         })
 
-    # ----- QUIZ QUESTIONS -----
+    # ----- Quiz questions -----
     quiz = load_json("quizzes/main.json")
     n_q = len(quiz)
     if n_q:
@@ -368,12 +344,9 @@ def build_bank_for_level(level):
         q_level_raw = (q.get("level") or "").lower()
 
         if q_level_raw:
-            # Support "beginner"/"basic"/"intermediate"/"advanced"
             if want_lvl not in q_level_raw:
-                if not (want_lvl == "beginner" and "basic" in q_level_raw):
-                    continue
+                continue
         else:
-            # No explicit level: split quiz by index into 3 bands
             if n_q >= 3:
                 if level == "Beginner" and j >= third_q:
                     continue
@@ -381,8 +354,6 @@ def build_bank_for_level(level):
                     continue
                 elif level == "Advanced" and j < 2 * third_q:
                     continue
-            else:
-                pass
 
         bank.append({
             "type": "quiz",
@@ -405,11 +376,11 @@ def reset_game(level):
     }
 
 # -----------------------------
-# PAGES
+# Pages
 # -----------------------------
 def page_home():
     st.title("🎣 THAT'S PHISHY")
-    st.caption("Interactive, gamified phishing awareness. Spot the bait before you get hooked.")
+    st.caption("Interactive, gamified phishing awareness across email, SMS, WhatsApp, and fake virus popups.")
     if st.session_state.user_email:
         st.success(f"Signed in as {st.session_state.user_email}")
     else:
@@ -428,31 +399,24 @@ def page_learn(level):
         play_chime()
         st.success(f"{level} learning completed. You can proceed to the game!")
 
-# -----------------------------
-# 🎮 GAME SECTION — Scenario-based
-# -----------------------------
 def page_game(level):
     st.header(f"🎮 THAT'S PHISHY — {level}")
 
-    # Gate: must complete Learn first
     if not st.session_state.learn_done[level]:
         st.warning("Complete the Learn section first to unlock the game.")
         return
 
-    # Ensure bank is built
     if not st.session_state.game["bank"]:
         reset_game(level)
 
     game = st.session_state.game
     bank = game["bank"]
-    idx = game["index"]
+    idx  = game["index"]
 
-    # If we've gone past the last item, mark finished
     if idx >= len(bank):
         game["finished"] = True
         st.session_state.game = game
 
-    # If game finished: show summary + tips
     if game["finished"]:
         total = len(bank)
         score = game["score"]
@@ -469,7 +433,7 @@ def page_game(level):
         summary_prompt = (
             f"User finished a phishing training ({level}) with score {score}/{total}. "
             "Give 3 short, encouraging improvement tips aligned with common phishing red flags "
-            "(sender address, link hovering, attachments, urgency). Keep it very simple."
+            "(sender, links, domains, urgency, attachments, and 'virus' popups). Keep it very simple."
         )
         st.info(ai_summary(summary_prompt))
         save_result(st.session_state.user_email, score, total, level, mode="game")
@@ -486,7 +450,6 @@ def page_game(level):
             st.rerun()
         return
 
-    # Progress / stars
     st.write(f"**Scenario {idx+1} of {len(bank)}**")
     st.progress((idx + 1) / len(bank))
     st.markdown(
@@ -494,16 +457,13 @@ def page_game(level):
         unsafe_allow_html=True
     )
 
-    # If we already have feedback for this scenario, show it and a "Next" button
     if game["feedback"] is not None:
         fb = game["feedback"]
-        # verdict message
         if fb.get("correct"):
             st.success(fb.get("message", "Correct! ⭐"))
         else:
             st.error(fb.get("message", "Not quite."))
 
-        # scenario explanation if present
         explanation = fb.get("explanation")
         if explanation:
             st.markdown("### 🧠 Scenario Breakdown")
@@ -516,36 +476,70 @@ def page_game(level):
             st.rerun()
         return
 
-    # No feedback yet → show the current item
-    if not bank:
-        st.info("No scenarios or quiz items available for this level.")
-        return
-
     item = bank[idx]
 
-    # ----- EMAIL SCENARIO MODE -----
-    if item["type"] == "email":
-        st.markdown("### 📘 Scenario")
-        st.write(
-            "Imagine you are checking your inbox and you receive the following email. "
-            "Look at the sender, the wording, and any links carefully."
-        )
+    # ---------- SCENARIO MODE ----------
+    if item["type"] == "scenario":
+        channel = item.get("channel", "email")
 
-        st.subheader(f"📧 Subject: {item['subject']}")
-        st.write(item["body"])
+        if channel == "email":
+            st.markdown("### 📘 Email Scenario")
+            st.write(
+                "Imagine you are checking your inbox and you receive the following email. "
+                "Look carefully at the sender, wording, links, and any sense of urgency."
+            )
+            if item.get("sender"):
+                st.write(f"**From:** {item['sender']}")
+            if item.get("subject"):
+                st.write(f"**Subject:** {item['subject']}")
+            st.write(item.get("message", ""))
+
+        elif channel == "sms":
+            st.markdown("### 📱 SMS Scenario")
+            st.write(
+                "Imagine your phone buzzes with this SMS/text. "
+                "Think about the sender, the link, and what it is asking you to do."
+            )
+            if item.get("sender"):
+                st.write(f"**From:** {item['sender']}")
+            st.write(item.get("message", ""))
+
+        elif channel == "whatsapp":
+            st.markdown("### 💬 WhatsApp Scenario")
+            st.write(
+                "Imagine this message appears in your WhatsApp chat. "
+                "Consider whether you know the sender and if the request is reasonable."
+            )
+            if item.get("sender"):
+                st.write(f"**From:** {item['sender']}")
+            st.write(item.get("message", ""))
+
+        elif channel == "popup":
+            st.markdown("### 🖥️ Security / Virus Alert Scenario")
+            st.write(
+                "Imagine this security message suddenly appears on your screen while you are browsing. "
+                "Is it a real alert or part of a scam?"
+            )
+            if item.get("subject"):
+                st.write(f"**Title:** {item['subject']}")
+            st.write(item.get("message", ""))
+
+        else:
+            st.markdown("### 📘 Message Scenario")
+            st.write(item.get("message", ""))
 
         try:
             picked = st.radio(
-                "How would you classify this email?",
+                "How would you classify this?",
                 ["Phishing", "Safe"],
                 index=None,
-                key=f"pick_{idx}"
+                key=f"scenario_{idx}"
             )
         except TypeError:
             picked = st.radio(
-                "How would you classify this email?",
+                "How would you classify this?",
                 ["Phishing", "Safe"],
-                key=f"pick_{idx}"
+                key=f"scenario_{idx}"
             )
 
         col1, col2 = st.columns(2)
@@ -557,14 +551,13 @@ def page_game(level):
                 is_correct = (picked == correct)
 
                 if is_correct:
-                    msg = f"Correct! ⭐ This email is **{correct}**."
+                    msg = f"Correct! ⭐ This scenario is **{correct}**."
                     game["score"] += 1
                     game["stars"] += 1
                 else:
-                    msg = f"Not quite. This email is actually **{correct}**."
+                    msg = f"Not quite. This scenario is actually **{correct}**."
 
-                # Build a scenario explanation (AI or fallback)
-                explanation = explain_email_scenario(item, picked)
+                explanation = explain_scenario(item, picked)
 
                 game["feedback"] = {
                     "correct": is_correct,
@@ -579,12 +572,12 @@ def page_game(level):
             st.session_state.game = game
             st.rerun()
 
-    # ----- QUIZ MODE (knowledge check) -----
+    # ---------- QUIZ MODE ----------
     elif item["type"] == "quiz":
         st.subheader("🧠 Knowledge Check")
         st.write(item["question"])
         opts = item.get("options", [])
-        ans = item.get("answer")
+        ans  = item.get("answer")
 
         if not opts or not ans:
             st.warning("This quiz item is incomplete; skipping.")
@@ -623,7 +616,7 @@ def page_game(level):
                 game["feedback"] = {
                     "correct": is_correct,
                     "message": msg,
-                    "explanation": None  # we keep quiz feedback short
+                    "explanation": None
                 }
                 st.session_state.game = game
                 st.rerun()
@@ -640,7 +633,7 @@ def page_results():
         q = supabase.table("simulation_results").select("*").eq("email", who).order("created_at", desc=True).execute()
         rows = q.data or []
         if not rows:
-            st.info("No results yet. Complete Learn + Game to see your progress here.")
+            st.info("No results yet. Complete Learn + THAT'S PHISHY to see your progress here.")
             return
         for r in rows[:12]:
             when = r.get("created_at", "—")
@@ -649,8 +642,8 @@ def page_results():
                 f"Score: **{r.get('score','?')}/{r.get('total','?')}** "
                 f"({r.get('mode','game')})"
             )
-    except Exception as e:
-        st.error(f"Could not load results: {e}")
+    except Exception:
+        st.error("Could not load results right now. Please try again later.")
 
 def page_ai():
     st.header("🤖 Cybersecurity AI Assistant")
@@ -696,8 +689,8 @@ else:
     st.sidebar.caption("Signed in: guest (results saved as guest@demo)")
 
 page = st.sidebar.radio(
-    "🔍 Phishy or Safe?",
-    ["Home", "Learn", "Phishy or Safe?", "Results", "AI Assistant", "Account"]
+    "Phishy or Safe? 🔍",
+    ["Home", "Learn", "THAT'S PHISHY", "Results", "AI Assistant", "Account"]
 )
 
 st.sidebar.divider()
@@ -712,7 +705,7 @@ if page == "Home":
     page_home()
 elif page == "Learn":
     page_learn(st.session_state.level)
-elif page == "Phishy or Safe?":
+elif page == "THAT'S PHISHY":
     page_game(st.session_state.level)
 elif page == "Results":
     page_results()
