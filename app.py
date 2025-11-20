@@ -82,6 +82,7 @@ def load_json(path, default=None):
         with open(os.path.join(BASE_DIR, path), "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
+        # In production you might want to log this instead of warning
         st.warning(f"⚠️ Missing or unreadable file: {path} — {e}")
         return default
 
@@ -89,8 +90,10 @@ def save_result(email, score, total, level, mode):
     try:
         supabase.table("simulation_results").insert({
             "email": email or "guest@demo",
-            "score": score, "total": total,
-            "level": level, "mode": mode,
+            "score": score,
+            "total": total,
+            "level": level,
+            "mode": mode,
             "created_at": datetime.utcnow().isoformat()
         }).execute()
     except Exception as e:
@@ -119,14 +122,16 @@ def ai_summary(text: str) -> str:
         return random.choice(tips)
 
 def badge_for(score, total):
-    pct = (score/total*100) if total else 0
-    if pct >= 80:  return "🥇 Gold Defender"
-    if pct >= 50:  return "🥈 Silver Scout"
+    pct = (score / total * 100) if total else 0
+    if pct >= 80:
+        return "🥇 Gold Defender"
+    if pct >= 50:
+        return "🥈 Silver Scout"
     return "🥉 Bronze Trainee"
 
 def star_bar(n):  # visual cap at 10
     n = max(0, min(10, n))
-    return "⭐"*n + "☆"*(10-n)
+    return "⭐" * n + "☆" * (10 - n)
 
 def explain_email_scenario(item, picked):
     """
@@ -219,30 +224,93 @@ def load_lessons(level):
     """
     if level == "Beginner":
         return load_json("content/cards_beginner.json", default=[
-            {"title": "What is Phishing?", "content": "Phishing is a fake message that tries to trick you into giving away information, money, or access."},
-            {"title": "Common Phishing Clues", "content": "Urgent tone, threats, unknown sender, bad spelling, or offers that seem too good to be true."},
-            {"title": "Links & Buttons", "content": "Always hover over links to see where they really go before clicking."},
-            {"title": "Never Share Codes", "content": "Legit companies don’t ask for passwords, OTPs, or PINs in messages or emails."}
+            {
+                "title": "What is Phishing?",
+                "content": "Phishing is a social engineering attack where an attacker sends a fake email, SMS, "
+                           "or message pretending to be a trusted organisation. The goal is to steal passwords, "
+                           "bank details, or personal information, or to trick the victim into installing malware."
+            },
+            {
+                "title": "Common Phishing Clues",
+                "content": "Phishing messages often use urgent or threatening language, unexpected attachments, "
+                           "poor spelling, strange grammar, or sender addresses that do not match the real company."
+            },
+            {
+                "title": "Links & Fake Websites",
+                "content": "Attackers hide fake websites behind links. Hover over links to see the real URL before "
+                           "clicking, and watch out for look-alike domains like paypa1.com instead of paypal.com."
+            },
+            {
+                "title": "Attachments & Information Requests",
+                "content": "Unexpected attachments or messages asking for passwords, OTPs, PINs, or bank details "
+                           "are strong signs of phishing. Legitimate organisations do not request this by email."
+            }
         ])
     elif level == "Intermediate":
         return load_json("content/cards_intermediate.json", default=[
-            {"title": "More Sneaky Tricks", "content": "Attackers may copy real logos, names, and signatures to look legit."},
-            {"title": "Domain Look-Alikes", "content": "Watch out for slight changes like amaz0n.com or support-paypal.com instead of the real site."},
-            {"title": "Attachments", "content": "Unexpected ZIP, EXE, or HTML attachments can install malware or steal your data."},
-            {"title": "Multi-Channel Phishing", "content": "Scams can come via SMS, WhatsApp, social media DMs, or fake support calls."}
+            {
+                "title": "Look-Alike Domains & Spoofed Senders",
+                "content": "Attackers often register domains that look almost correct, such as paypa1.com instead "
+                           "of paypal.com. They may also fake the display name, like 'IT Support', while the real "
+                           "email address is from a random domain. Always check the part after the @ symbol."
+            },
+            {
+                "title": "Fake HR & Payroll Messages",
+                "content": "Phishing emails often pretend to be from HR or Payroll and use salary, contracts, or "
+                           "benefits to get attention. They might ask you to 'confirm bank details' or 'avoid salary "
+                           "delays'. Real HR systems usually use official portals and already have your data."
+            },
+            {
+                "title": "Malicious Attachments in Realistic Emails",
+                "content": "Intermediate phishing attacks can look professional but hide dangerous attachments like "
+                           ".zip, .html, or .exe files. These can install malware or remote access tools. Verify "
+                           "unexpected files using another channel before opening them."
+            },
+            {
+                "title": "Multi-Step & Multi-Channel Phishing",
+                "content": "Attackers may combine email, SMS, and phone calls to make the story feel real. For "
+                           "example, an email warns about a login issue, an SMS sends a code, and a phone call asks "
+                           "you to share the code. Legitimate services never ask you to read out OTPs."
+            },
+            {
+                "title": "Security Hygiene: Verify Before You Act",
+                "content": "A strong defence is to pause and verify. Instead of clicking links in messages, open the "
+                           "official app or type the official website address yourself. Use approved helpdesk or HR "
+                           "channels to confirm unusual requests."
+            }
         ])
     else:  # Advanced
         return load_json("content/cards_advanced.json", default=[
-            {"title": "Spear Phishing", "content": "Highly targeted messages built using info from LinkedIn, email leaks, or social media."},
-            {"title": "Business Email Compromise", "content": "Attackers impersonate a boss, supplier, or finance to push urgent payments."},
-            {"title": "Credential Harvesting", "content": "Fake login pages steal usernames and passwords. Always type the official URL yourself."},
-            {"title": "Reporting & Response", "content": "Use 'Report phishing' in mail clients and notify IT/security when you spot something suspicious."}
+            {
+                "title": "Spear Phishing",
+                "content": "Spear phishing is highly targeted phishing aimed at specific people or roles. Attackers "
+                           "use information from LinkedIn, data breaches, or social media to craft personalised, "
+                           "believable messages."
+            },
+            {
+                "title": "Business Email Compromise (BEC)",
+                "content": "In BEC attacks, criminals impersonate executives, suppliers, or finance contacts to push "
+                           "urgent payments or changes to bank details. These messages often avoid links and focus "
+                           "on social pressure and urgency."
+            },
+            {
+                "title": "Credential Harvesting & Fake Portals",
+                "content": "Credential harvesting uses fake login pages to steal usernames and passwords. The page "
+                           "may look identical to the real site. Always open important sites by typing the URL "
+                           "yourself or using bookmarks, not email links."
+            },
+            {
+                "title": "Detection & Reporting",
+                "content": "At an advanced level, defence includes quickly reporting suspicious messages using 'Report "
+                           "phishing' features in email clients and following internal incident response procedures. "
+                           "Early reporting helps protect the whole organisation."
+            }
         ])
 
 def build_bank_for_level(level):
-    # Map UI level to internal label for old JSON that uses "basic"/"advanced"
+    # Map UI level to JSON level tags
     level_map = {
-        "Beginner": "basic",
+        "Beginner": "beginner",
         "Intermediate": "intermediate",
         "Advanced": "advanced"
     }
@@ -263,10 +331,11 @@ def build_bank_for_level(level):
         em_level_raw = (em.get("level") or "").lower()
 
         if em_level_raw:
-            # If level is specified in JSON, support both new and old tags
-            # e.g. "basic", "beginner", "intermediate", "advanced"
+            # Support tags like "beginner", "basic", "intermediate", "advanced"
             if want_lvl not in em_level_raw:
-                continue
+                # compatibility: treat "basic" as beginner if used
+                if not (want_lvl == "beginner" and "basic" in em_level_raw):
+                    continue
         else:
             # No explicit level: split by index into 3 bands
             if n_e >= 3:
@@ -277,7 +346,6 @@ def build_bank_for_level(level):
                 elif level == "Advanced" and i < 2 * third_e:
                     continue
             else:
-                # If very few items, just include all
                 pass
 
         subj = em.get("subject", f"Email {i+1}")
@@ -300,9 +368,10 @@ def build_bank_for_level(level):
         q_level_raw = (q.get("level") or "").lower()
 
         if q_level_raw:
-            # Support "basic"/"beginner"/"intermediate"/"advanced"
+            # Support "beginner"/"basic"/"intermediate"/"advanced"
             if want_lvl not in q_level_raw:
-                continue
+                if not (want_lvl == "beginner" and "basic" in q_level_raw):
+                    continue
         else:
             # No explicit level: split quiz by index into 3 bands
             if n_q >= 3:
@@ -448,6 +517,10 @@ def page_game(level):
         return
 
     # No feedback yet → show the current item
+    if not bank:
+        st.info("No scenarios or quiz items available for this level.")
+        return
+
     item = bank[idx]
 
     # ----- EMAIL SCENARIO MODE -----
@@ -623,8 +696,8 @@ else:
     st.sidebar.caption("Signed in: guest (results saved as guest@demo)")
 
 page = st.sidebar.radio(
-    "Go to:",
-    ["Home", "Learn", "THAT'S PHISHY (Game)", "Results", "AI Assistant", "Account"]
+    "🔍 Phishy or Safe?",
+    ["Home", "Learn", "Phishy or Safe?", "Results", "AI Assistant", "Account"]
 )
 
 st.sidebar.divider()
@@ -639,7 +712,7 @@ if page == "Home":
     page_home()
 elif page == "Learn":
     page_learn(st.session_state.level)
-elif page == "THAT'S PHISHY (Game)":
+elif page == "Phishy or Safe?":
     page_game(st.session_state.level)
 elif page == "Results":
     page_results()
