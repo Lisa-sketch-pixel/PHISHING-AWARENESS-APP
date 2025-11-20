@@ -8,7 +8,7 @@
       "To update your software"
     ],
     "answer": "To steal information or trick the victim into harmful actions",
-    "level": "beginner"
+    "level": "basic"
   },
   {
     "question": "Which of the following is a common sign of a phishing email?",
@@ -19,7 +19,7 @@
       "A personal message from someone you know"
     ],
     "answer": "Urgent language demanding immediate action",
-    "level": "beginner"
+    "level": "basic"
   },
   {
     "question": "How can you check if a link is suspicious before clicking it?",
@@ -30,7 +30,7 @@
       "Copy the link and give it to a friend"
     ],
     "answer": "Hover your mouse over the link to preview the real URL",
-    "level": "beginner"
+    "level": "basic"
   },
   {
     "question": "Which action is safest when you receive an unexpected attachment?",
@@ -41,9 +41,8 @@
       "Save it for later"
     ],
     "answer": "Delete it or verify separately with the sender",
-    "level": "beginner"
+    "level": "basic"
   },
-
   {
     "question": "Which example best describes a look-alike domain used in phishing?",
     "options": [
@@ -110,60 +109,70 @@
     "answer": "Open the official app or type the official website address yourself and check there",
     "level": "intermediate"
   },
-
   {
     "question": "What is spear phishing?",
     "options": [
-      "Random phishing sent to millions of people",
+      "Random phishing messages sent to as many people as possible",
       "Highly targeted phishing aimed at specific people or roles",
-      "A phishing attempt that uses only SMS messages",
-      "A phishing test performed by your own company"
+      "Phishing that only uses SMS messages",
+      "A phishing test done by your own company"
     ],
     "answer": "Highly targeted phishing aimed at specific people or roles",
     "level": "advanced"
   },
   {
-    "question": "Which scenario best represents Business Email Compromise (BEC)?",
+    "question": "Which scenario best describes Business Email Compromise (BEC)?",
     "options": [
-      "A random email asking you to update your Netflix password",
-      "An attacker impersonating your CEO and requesting an urgent fund transfer",
-      "An email asking you to join a meeting via Zoom",
-      "A monthly company newsletter"
+      "A fake social media message asking you to click a funny video",
+      "An attacker pretending to be a company executive requesting an urgent payment or change of bank details",
+      "A pop-up on a website asking you to accept cookies",
+      "A friend asking to borrow your phone charger"
     ],
-    "answer": "An attacker impersonating your CEO and requesting an urgent fund transfer",
+    "answer": "An attacker pretending to be a company executive requesting an urgent payment or change of bank details",
     "level": "advanced"
   },
   {
-    "question": "Which behaviour increases your risk of falling for credential harvesting attacks?",
+    "question": "Which sign most strongly suggests a credential-harvesting page?",
     "options": [
-      "Typing the official website address yourself",
-      "Using bookmarked links to trusted services",
-      "Logging in through links sent via email or SMS",
-      "Using multi-factor authentication"
+      "The page uses your company logo and colours",
+      "You reached the login page by clicking a link in an unexpected email",
+      "The page asks you to confirm your username",
+      "The page loads slowly at first"
     ],
-    "answer": "Logging in through links sent via email or SMS",
+    "answer": "You reached the login page by clicking a link in an unexpected email",
     "level": "advanced"
   },
   {
-    "question": "Which sign might indicate a highly sophisticated phishing email?",
+    "question": "What is the safest response if a vendor email suddenly changes bank account details for an invoice payment?",
     "options": [
-      "Multiple spelling and grammar errors",
-      "Sender address from a random domain",
-      "Extremely well-written email with correct logos but a suspicious link",
-      "Message sent late at night"
+      "Pay to the new bank account immediately to avoid delay",
+      "Reply to the email and ask if it is real",
+      "Call the vendor using a phone number from your official records, not from the email",
+      "Forward the email to another department and wait"
     ],
-    "answer": "Extremely well-written email with correct logos but a suspicious link",
+    "answer": "Call the vendor using a phone number from your official records, not from the email",
     "level": "advanced"
   },
   {
-    "question": "Which action should you take if you suspect an internal email is actually a targeted phishing attempt?",
+    "question": "You clicked a link in a suspicious email and typed in your password. What is the best immediate action?",
     "options": [
-      "Reply to confirm if it is real",
-      "Forward it to a colleague",
-      "Click the link to check if the page loads properly",
-      "Report it to IT or Security immediately"
+      "Do nothing and wait to see if anything happens",
+      "Close the browser and delete the email only",
+      "Change your password using the official website and notify IT/security",
+      "Unplug your computer from the power socket"
     ],
-    "answer": "Report it to IT or Security immediately",
+    "answer": "Change your password using the official website and notify IT/security",
+    "level": "advanced"
+  },
+  {
+    "question": "Which of the following is a common characteristic of a well-crafted spear phishing email?",
+    "options": [
+      "It uses random names and generic content",
+      "It contains obvious spelling errors and broken images",
+      "It includes specific details about your role, projects, or recent activity",
+      "It is always sent from an anonymous email address"
+    ],
+    "answer": "It includes specific details about your role, projects, or recent activity",
     "level": "advanced"
   }
 ]
