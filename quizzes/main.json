@@ -1,62 +1,169 @@
 [
   {
-    "level":"basic",
-    "question":"Which is the biggest phishing red flag?",
-    "options":["Friendly tone","Grammatical errors and urgent threats","Being addressed by name","Plain-text email"],
-    "answer":"Grammatical errors and urgent threats"
+    "question": "What is the main purpose of a phishing attack?",
+    "options": [
+      "To steal information or trick the victim into harmful actions",
+      "To test internet connection speed",
+      "To fix security issues on your device",
+      "To update your software"
+    ],
+    "answer": "To steal information or trick the victim into harmful actions",
+    "level": "beginner"
   },
   {
-    "level":"basic",
-    "question":"Best first step with a suspicious email?",
-    "options":["Click the link to check","Reply and ask for proof","Ignore forever","Verify via the official app/site, not the email link"],
-    "answer":"Verify via the official app/site, not the email link"
+    "question": "Which of the following is a common sign of a phishing email?",
+    "options": [
+      "A perfectly spelled message from a trusted contact",
+      "An email sent from the official company address",
+      "Urgent language demanding immediate action",
+      "A personal message from someone you know"
+    ],
+    "answer": "Urgent language demanding immediate action",
+    "level": "beginner"
   },
   {
-    "level":"basic",
-    "question":"Legitimate companies will NOT ask for:",
-    "options":["Billing address updates","Marketing preferences","Your password or 2FA codes","Feedback surveys"],
-    "answer":"Your password or 2FA codes"
+    "question": "How can you check if a link is suspicious before clicking it?",
+    "options": [
+      "Click it quickly to see where it goes",
+      "Hover your mouse over the link to preview the real URL",
+      "Reply to the sender to confirm",
+      "Copy the link and give it to a friend"
+    ],
+    "answer": "Hover your mouse over the link to preview the real URL",
+    "level": "beginner"
   },
   {
-    "level":"basic",
-    "question":"Safest way to check a link without clicking?",
-    "options":["Right-click it","Hover to preview URL","Paste into a new tab","Ask a friend"],
-    "answer":"Hover to preview URL"
+    "question": "Which action is safest when you receive an unexpected attachment?",
+    "options": [
+      "Open it immediately to see what it contains",
+      "Forward it to another person",
+      "Delete it or verify separately with the sender",
+      "Save it for later"
+    ],
+    "answer": "Delete it or verify separately with the sender",
+    "level": "beginner"
+  },
+
+  {
+    "question": "Which example best describes a look-alike domain used in phishing?",
+    "options": [
+      "secure.company.com instead of company.com",
+      "support-company.com instead of anothercompany.com",
+      "paypa1.com instead of paypal.com",
+      "company.co instead of company.com"
+    ],
+    "answer": "paypa1.com instead of paypal.com",
+    "level": "intermediate"
   },
   {
-    "level":"basic",
-    "question":"A safe password practice is:",
-    "options":["Reuse across sites","Write it on a sticky note","Use a password manager","Share with your partner"],
-    "answer":"Use a password manager"
+    "question": "What is the safest reaction if you see an email from 'IT Support' but the actual sender address is from a free email service?",
+    "options": [
+      "Reply and ask them to confirm their identity",
+      "Click the link to see if the website looks real",
+      "Ignore the email or report it as phishing",
+      "Forward it to coworkers so they are aware"
+    ],
+    "answer": "Ignore the email or report it as phishing",
+    "level": "intermediate"
   },
   {
-    "level":"advanced",
-    "question":"What is Business Email Compromise (BEC)?",
-    "options":["A company hit by ransomware","Exec/vendor impersonation for payments/data","Phishing by SMS","Credential stuffing"],
-    "answer":"Exec/vendor impersonation for payments/data"
+    "question": "Which HR-related email is most likely to be a phishing attempt?",
+    "options": [
+      "A monthly newsletter from HR with general updates",
+      "An email asking you to join a scheduled team-building event",
+      "An email asking you to urgently send your bank details to avoid salary delay",
+      "An email reminding you to submit your timesheet through the official HR portal"
+    ],
+    "answer": "An email asking you to urgently send your bank details to avoid salary delay",
+    "level": "intermediate"
   },
   {
-    "level":"advanced",
-    "question":"Which looks most suspicious?",
-    "options":["it-support@company.com","it.support@company.com","itsupport@company.co","it-support@companny.com"],
-    "answer":"it-support@companny.com"
+    "question": "Why are unexpected attachments in emails dangerous, even if the message looks professional?",
+    "options": [
+      "They can slow down your internet connection",
+      "They can be used to track how many times you open the email",
+      "They might contain malware or tools that give attackers control of your device",
+      "They are always harmless if the sender is polite"
+    ],
+    "answer": "They might contain malware or tools that give attackers control of your device",
+    "level": "intermediate"
   },
   {
-    "level":"advanced",
-    "question":"What should you do after clicking a bad link?",
-    "options":["Nothing if nothing happened","Change passwords and run a malware scan","Delete the email only","Forward to everyone"],
-    "answer":"Change passwords and run a malware scan"
+    "question": "Which situation is an example of a multi-channel phishing attack?",
+    "options": [
+      "You receive a single email with grammar mistakes",
+      "You receive an SMS and a phone call from the same number reminding you of a meeting",
+      "You receive an email, an SMS, and a phone call all pushing you to share an OTP for 'verification'",
+      "You receive a newsletter and a calendar invite from your manager"
+    ],
+    "answer": "You receive an email, an SMS, and a phone call all pushing you to share an OTP for 'verification'",
+    "level": "intermediate"
   },
   {
-    "level":"advanced",
-    "question":"A classic credential-harvest page usually:",
-    "options":["Uses official domain","Shows perfect grammar always","Imitates look & logo but URL is off","Always asks for MFA"],
-    "answer":"Imitates look & logo but URL is off"
+    "question": "What is a good security hygiene step when an email asks you to log in and update your details?",
+    "options": [
+      "Use the link in the email to save time",
+      "Forward the email to another colleague to check",
+      "Delete the email without reading it",
+      "Open the official app or type the official website address yourself and check there"
+    ],
+    "answer": "Open the official app or type the official website address yourself and check there",
+    "level": "intermediate"
+  },
+
+  {
+    "question": "What is spear phishing?",
+    "options": [
+      "Random phishing sent to millions of people",
+      "Highly targeted phishing aimed at specific people or roles",
+      "A phishing attempt that uses only SMS messages",
+      "A phishing test performed by your own company"
+    ],
+    "answer": "Highly targeted phishing aimed at specific people or roles",
+    "level": "advanced"
   },
   {
-    "level":"advanced",
-    "question":"Best defense against attachment malware?",
-    "options":["Disable antivirus","Open HTML attachments to read","Only open expected files; scan first","Turn off email filters"],
-    "answer":"Only open expected files; scan first"
+    "question": "Which scenario best represents Business Email Compromise (BEC)?",
+    "options": [
+      "A random email asking you to update your Netflix password",
+      "An attacker impersonating your CEO and requesting an urgent fund transfer",
+      "An email asking you to join a meeting via Zoom",
+      "A monthly company newsletter"
+    ],
+    "answer": "An attacker impersonating your CEO and requesting an urgent fund transfer",
+    "level": "advanced"
+  },
+  {
+    "question": "Which behaviour increases your risk of falling for credential harvesting attacks?",
+    "options": [
+      "Typing the official website address yourself",
+      "Using bookmarked links to trusted services",
+      "Logging in through links sent via email or SMS",
+      "Using multi-factor authentication"
+    ],
+    "answer": "Logging in through links sent via email or SMS",
+    "level": "advanced"
+  },
+  {
+    "question": "Which sign might indicate a highly sophisticated phishing email?",
+    "options": [
+      "Multiple spelling and grammar errors",
+      "Sender address from a random domain",
+      "Extremely well-written email with correct logos but a suspicious link",
+      "Message sent late at night"
+    ],
+    "answer": "Extremely well-written email with correct logos but a suspicious link",
+    "level": "advanced"
+  },
+  {
+    "question": "Which action should you take if you suspect an internal email is actually a targeted phishing attempt?",
+    "options": [
+      "Reply to confirm if it is real",
+      "Forward it to a colleague",
+      "Click the link to check if the page loads properly",
+      "Report it to IT or Security immediately"
+    ],
+    "answer": "Report it to IT or Security immediately",
+    "level": "advanced"
   }
 ]
