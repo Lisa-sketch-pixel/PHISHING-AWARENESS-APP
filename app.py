@@ -689,8 +689,8 @@ else:
     st.sidebar.caption("Signed in: guest (results saved as guest@demo)")
 
 page = st.sidebar.radio(
-    "Phishy or Safe? 🔍",
-    ["Home", "Learn", "THAT'S PHISHY", "Results", "AI Assistant", "Account"]
+    "Navigation",
+    ["Home", "Learn", "Phishy or safe?", "Results", "AI Assistant", "Account"]
 )
 
 st.sidebar.divider()
