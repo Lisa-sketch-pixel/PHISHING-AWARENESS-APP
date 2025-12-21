@@ -881,11 +881,48 @@ def page_results():
         if not rows:
             st.info("No results yet. Complete Learn + Phishy or Safe? to see your progress here.")
             return
+        
+        st.subheader("Recent Training Sessions")
         for r in rows[:12]:
             when = r.get("created_at", "—")
-            st.write(f"• **{when}** — {r.get('level', '?')} — Score: **{r.get('score', '?')}/{r.get('total', '?')}** ({r.get('mode', 'game')})")
-    except Exception:
-        st.error("Could not load results right now. Please try again later.")
+            # Format the timestamp to be more readable
+            try:
+                from datetime import datetime
+                dt = datetime.fromisoformat(when.replace("Z", "+00:00"))
+                when_formatted = dt.strftime("%b %d, %Y at %I:%M %p")
+            except:
+                when_formatted = when
+            
+            # Get the score - try both 'correct' and 'score' columns
+            score = r.get('correct') or r.get('score', '?')
+            total = r.get('total', '?')
+            level = r.get('level', 'Unknown')
+            mode = r.get('mode', 'game')
+            
+            # Calculate percentage
+            try:
+                percentage = int((score / total) * 100) if total and total != '?' else 0
+                badge = "🥇" if percentage >= 80 else "🥈" if percentage >= 50 else "🥉"
+            except:
+                percentage = 0
+                badge = "📊"
+            
+            # Display with better formatting
+            col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
+            with col1:
+                st.write(f"📅 {when_formatted}")
+            with col2:
+                st.write(f"**{level}** Level")
+            with col3:
+                st.write(f"**{score}/{total}**")
+            with col4:
+                st.write(f"{badge} {percentage}%")
+            
+            st.divider()
+            
+    except Exception as e:
+        st.error(f"Could not load results right now. Please try again later.")
+        st.write(f"Debug info: {str(e)}")
 
 
 def page_ai():
