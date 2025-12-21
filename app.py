@@ -366,7 +366,7 @@ def save_result(email, score, total, level, mode):
     try:
         supabase.table("simulation_results").insert({
             "email": email or "guest@demo",
-            "score": score,
+            "correct": score,
             "total": total,
             "level": level,
             "mode": mode,
@@ -683,7 +683,7 @@ def page_learn(level):
 
 
 def page_game(level):
-    st.header(f"🎮 THAT'S PHISHY — {level}")
+    st.header(f"🎮 Phishy or Safe? — {level}")
     
     if not st.session_state.learn_done[level]:
         st.warning("Complete the Learn section first to unlock the game.")
@@ -879,7 +879,7 @@ def page_results():
         q = supabase.table("simulation_results").select("*").eq("email", who).order("created_at", desc=True).execute()
         rows = getattr(q, "data", []) or []
         if not rows:
-            st.info("No results yet. Complete Learn + THAT'S PHISHY to see your progress here.")
+            st.info("No results yet. Complete Learn + Phishy or Safe? to see your progress here.")
             return
         for r in rows[:12]:
             when = r.get("created_at", "—")
@@ -935,7 +935,7 @@ else:
 
 page = st.sidebar.radio(
     "Go to:",
-    ["Home", "Learn", "THAT'S PHISHY", "Results", "AI Assistant", "Account"]
+    ["Home", "Learn", "Phishy or Safe?", "Results", "AI Assistant", "Account"]
 )
 st.sidebar.divider()
 if st.sidebar.button("🔁 Reset Current Game"):
@@ -950,7 +950,7 @@ if page == "Home":
     page_home()
 elif page == "Learn":
     page_learn(st.session_state.level)
-elif page == "THAT'S PHISHY":
+elif page == "Phishy or Safe?":
     page_game(st.session_state.level)
 elif page == "Results":
     page_results()
