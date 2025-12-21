@@ -64,7 +64,7 @@ h1, h2, h3 {
 # ----------------------------- 
 SUPABASE_URL = st.secrets.get("supabase", {}).get("url") or st.secrets.get("SUPABASE_URL")
 SUPABASE_KEY = st.secrets.get("supabase", {}).get("key") or st.secrets.get("SUPABASE_KEY")
-OPENAI_KEY = st.secrets.get("openai", {}).get("api_key") or st.secrets.get("OPENAI_API_KEY")
+GROQ_API_KEY = st.secrets.get("groq", {}).get("api_key") or st.secrets.get("GROQ_API_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     st.warning("Supabase credentials not found in Secrets. Results will not be saved remotely in this session.")
@@ -336,28 +336,48 @@ DEFAULT_QUIZZES = [
 ]
 
 
-# AI helper (OpenAI optional) — safe fallback to simple tips
+# AI helper (Groq API) — safe fallback to simple tips
 def ai_summary(text: str) -> str:
     try:
-        from openai import OpenAI
-        client = OpenAI(api_key=OPENAI_KEY)
-        r = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
+        import requests
+        
+        # Debug: Check if key exists
+        if not GROQ_API_KEY:
+            return "⚠️ Groq API key not found in secrets. Using fallback tips."
+        
+        # Groq API endpoint
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "llama-3.1-8b-instant",  # Fast and free model
+            "messages": [
                 {"role": "system", "content": "You are a friendly cybersecurity coach. Be concise and practical."},
                 {"role": "user", "content": text}
             ],
-            max_tokens=220,
-            temperature=0.7
-        )
-        return r.choices[0].message.content.strip()
-    except Exception:
-        tips = [
-            "Watch for urgency, odd sender domains, and unexpected attachments.",
-            "Hover links to preview URLs. Real services do not ask for passwords or codes via messages.",
-            "Verify using official apps or websites and report suspicious messages."
-        ]
-        return random.choice(tips)
+            "max_tokens": 220,
+            "temperature": 0.7
+        }
+        
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            result = response.json()
+            return result['choices'][0]['message']['content'].strip()
+        else:
+            return f"❌ Groq API Error: {response.status_code} - {response.text}"
+            
+    except Exception as e:
+        # Show the actual error for debugging
+        error_msg = str(e)
+        if "api key" in error_msg.lower():
+            return f"❌ Groq API Error: Invalid API key. Please check your key in Streamlit secrets."
+        elif "rate limit" in error_msg.lower():
+            return f"❌ Groq API Error: Rate limit exceeded. Try again later."
+        else:
+            return f"⚠️ Groq API Error: {error_msg}"
 
 
 def save_result(email, score, total, level, mode):
@@ -664,7 +684,7 @@ def page_home():
     if st.session_state.user_email:
         st.success(f"Signed in as {st.session_state.user_email}")
     else:
-        st.info("You're playing as guest. Results saved locally (and to Supabase if configured).")
+        st.info("You're playing as guest.")
 
 
 def page_learn(level):
@@ -927,13 +947,26 @@ def page_results():
 
 def page_ai():
     st.header("🤖 Cybersecurity AI Assistant")
+    
+    # Debug info
+    with st.expander("🔍 Debug Info - Click to check API status"):
+        st.write("**Groq API Key Status:**")
+        if GROQ_API_KEY:
+            # Show only first and last 4 characters for security
+            masked_key = f"{GROQ_API_KEY[:7]}...{GROQ_API_KEY[-4:]}" if len(GROQ_API_KEY) > 11 else "Key too short"
+            st.success(f"✅ API Key found: {masked_key}")
+        else:
+            st.error("❌ API Key NOT found in secrets")
+            st.info("Add your Groq key in Streamlit Cloud: Settings → Secrets → Add [groq] section")
+    
     q = st.text_area("Ask about phishing, suspicious links, or best practices:")
     if st.button("Ask AI", use_container_width=True):
         if not q.strip():
             st.warning("Type a question first.")
         else:
             with st.spinner("Thinking..."):
-                st.write(ai_summary("User question: " + q.strip()))
+                response = ai_summary("User question: " + q.strip())
+                st.write(response)
 
 
 def page_account():
